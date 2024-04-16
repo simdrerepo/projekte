@@ -13,7 +13,6 @@ public class Netz {
         // Laenge legt die Anzahl der Neuronen in diesem Layer fest
         this.firstLayer = new Layer(laenge);
         size++;
-
     }
 
     public void addLast(Layer l){       
@@ -53,32 +52,47 @@ public class Netz {
      
      while(tmp.next!=null){
         Neuron[] neuronen = tmp.getNeuronen();
-        Double[] vektor = new Double[neuronen.length];
-        for(int i =0;i<neuronen.length;i++){
-            vektor[i] = neuronen[i].getWert();
-        }
-        Double[][] matrix = new Double[tmp.next.neuronen.length][neuronen.length];
-      
         Neuron[] nextneuronen = tmp.next.getNeuronen();
-        for(int i =0;i < nextneuronen.length;i++){
-            matrix[i] = nextneuronen[i].gewichte;
-        }
+        Neuron[] neueNeuronen = new Neuron[nextneuronen.length];
 
-      //  System.out.println(Arrays.deepToString(matrix));
-       // System.out.println(Arrays.deepToString(vektor));
+        Double[] gewichte;
 
-        Double[] newvektor = MatrixVektorMulti(matrix, vektor);
-        for(int i =0;i<newvektor.length;i++){
-            tmp.next.neuronen[i].setWert(Aktivierungsfunktion.sigmoid(newvektor[i]));
+        for(int i=0,n=neuronen.length;i<n;i++){
+            
+            
+            for(int j=0,m=nextneuronen.length;j<m;j++){
+                gewichte = nextneuronen[j].getGewichte();
+                Neuron neuron = new Neuron();
+                neuron.setWert(Aktivierungsfunktion.sigmoid(calcNextWert(gewichte,neuronen)));
+                
+                neueNeuronen[j]=neuron;
+            }
         }
-        tmp =tmp.next;
+        
+        tmp.next.setNeuronen(neueNeuronen);
+
+        tmp = tmp.next;
+
+        
        
      }
     
     
 }
+private Double calcNextWert(Double[] gewichte,Neuron[] neuronen){
+            //Berechnet Skalarprodukt
+        Double nextWert = 0.0;
+  
+        for(int i=0,n=gewichte.length;i<n;i++){
+            nextWert = nextWert + gewichte[i]*neuronen[i].getWert();
+        }
+       
+        return nextWert;
+           
+        }
+       
 
-public Double[] MatrixVektorMulti(Double[][] matrix, Double[] vektor){
+private Double[] MatrixVektorMulti(Double[][] matrix, Double[] vektor){
     Double[] return_vektor = new Double[matrix.length];
     for(int i=0;i<return_vektor.length;i++){
         return_vektor[i] = 0.0;

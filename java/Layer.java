@@ -37,9 +37,11 @@ public class Layer {
     public void printNeuronenWert(){
         
        for(Neuron n : neuronen){
-            System.err.println(n.getWert());
+            System.out.println(n.getWert());
        }
-       System.err.println("---------------");
+       System.out.println("---------------");
+      
+
     }
   
 }
