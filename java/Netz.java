@@ -3,11 +3,8 @@ import java.util.stream.Stream;
 
 public class Netz {
 
-
     Layer firstLayer;
-    
     int size = 0;
-
 
     public Netz(int AnzahlNeuronen){
         // Laenge legt die Anzahl der Neuronen in diesem Layer fest
@@ -21,7 +18,6 @@ public class Netz {
             tmp = tmp.next;
         }
         tmp.next = l;
-      
         size++;
     }
 
@@ -30,65 +26,44 @@ public class Netz {
         while(tmp.next!=null){
             tmp.printNeuronenWert();
             tmp = tmp.next;
-            
         }
         tmp.printNeuronenWert();
-        
-        
     }
 
     public void addInputVektor(Double[] input){
             for(int i = 0;i<input.length;i++){
                 firstLayer.neuronen[i].setWert(input[i]);
             }
-
     }
 
-   
-
-    
     public void compute(){
      Layer tmp = firstLayer;
-     
      while(tmp.next!=null){
         Neuron[] neuronen = tmp.getNeuronen();
         Neuron[] nextneuronen = tmp.next.getNeuronen();
         Neuron[] neueNeuronen = new Neuron[nextneuronen.length];
-
         Double[] gewichte;
 
         for(int i=0,n=neuronen.length;i<n;i++){
-            
-            
             for(int j=0,m=nextneuronen.length;j<m;j++){
                 gewichte = nextneuronen[j].getGewichte();
                 Neuron neuron = new Neuron();
                 neuron.setWert(Aktivierungsfunktion.sigmoid(calcNextWert(gewichte,neuronen)));
-                
                 neueNeuronen[j]=neuron;
             }
         }
-        
         tmp.next.setNeuronen(neueNeuronen);
-
         tmp = tmp.next;
-
-        
-       
      }
-    
-    
 }
+
 private Double calcNextWert(Double[] gewichte,Neuron[] neuronen){
             //Berechnet Skalarprodukt
         Double nextWert = 0.0;
-  
         for(int i=0,n=gewichte.length;i<n;i++){
             nextWert = nextWert + gewichte[i]*neuronen[i].getWert();
-        }
-       
-        return nextWert;
-           
+        } 
+        return nextWert;   
         }
        
 

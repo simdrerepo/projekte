@@ -1,5 +1,4 @@
-public class Neuron {
-    
+public class Neuron { 
         
         private Double wert;
         private Double[] gewichte;
@@ -7,8 +6,7 @@ public class Neuron {
         public Neuron(Double[] gewichte){
                 this.gewichte=gewichte;
         }
-        public Neuron(){
-            
+        public Neuron(){ 
         }
        
     public Double getWert(){
