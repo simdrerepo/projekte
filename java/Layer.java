@@ -11,17 +11,17 @@ public class Layer {
 
     }
     
-    public Layer(int vektorLaenge,Double[][] gewichte){
-        this.neuronen = new Neuron[vektorLaenge];
-        for(int i=0;i<vektorLaenge;i++){
+    public Layer(int AnzahlNeuronen,Double[][] gewichte){
+        this.neuronen = new Neuron[AnzahlNeuronen];
+        for(int i=0;i<AnzahlNeuronen;i++){
             neuronen[i] = new Neuron(gewichte[i]);
             
         }
        
     }
-    public Layer(int vektorLaenge){
-        this.neuronen=new Neuron[vektorLaenge];
-        for(int i =0;i<vektorLaenge;i++){
+    public Layer(int AnzahlNeuronen){
+        this.neuronen=new Neuron[AnzahlNeuronen];
+        for(int i =0;i<AnzahlNeuronen;i++){
             neuronen[i] = new Neuron();
         }
     }

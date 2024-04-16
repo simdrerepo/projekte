@@ -9,9 +9,9 @@ public class Netz {
     int size = 0;
 
 
-    public Netz(int laenge){
+    public Netz(int AnzahlNeuronen){
         // Laenge legt die Anzahl der Neuronen in diesem Layer fest
-        this.firstLayer = new Layer(laenge);
+        this.firstLayer = new Layer(AnzahlNeuronen);
         size++;
     }
 
