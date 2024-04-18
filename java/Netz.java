@@ -68,6 +68,7 @@ public class Netz {
     public void print(){
         for(Layer l : layer){
             l.printNeuronen();
+            System.out.println("---------------");
         }
     }
 

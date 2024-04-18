@@ -1,6 +1,6 @@
 public class Layer {
 
-    Neuron[] neuronen;
+    private Neuron[] neuronen;
   
 
     public Layer(){
@@ -19,9 +19,7 @@ public class Layer {
             neuronen[i] = new Neuron(0.0);
         }
     }
-    public void addNeuronen(){
-
-    }
+  
     public void printNeuronen(){
         for(Neuron n : neuronen){
             n.printWert();
