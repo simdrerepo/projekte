@@ -1,83 +1,60 @@
-import java.util.Arrays;
-import java.util.stream.Stream;
+
 
 public class Netz {
 
-    Layer firstLayer;
-    int size = 0;
+    private Layer[] layer;
 
-    public Netz(int AnzahlNeuronen){
-        // Laenge legt die Anzahl der Neuronen in diesem Layer fest
-        this.firstLayer = new Layer(AnzahlNeuronen);
-        size++;
+    private Double[][][] gewichte; 
+
+    public Netz(int groesse){
+        this.layer = new Layer[groesse];
     }
 
-    public void addLast(Layer l){       
-       Layer tmp = firstLayer;
-        while(tmp.next!=null){
-            tmp = tmp.next;
+    public void setGewichte(Double[][][] gewichte){
+        this.gewichte=gewichte;
+    }
+   
+    public void addLayer(int LayerGroesse){
+      
+        for(int i=0,n=this.layer.length;i<n;i++){
+            if(layer[i]==null){
+                layer[i] = new Layer(LayerGroesse);
+                return;
+            }
         }
-        tmp.next = l;
-        size++;
+    }
+    
+    public void addLayer(int LayerGroesse,Double[] inputVektor){
+        
+        for(int i=0,n=layer.length;i<n;i++){
+            if(layer[i]==null){
+                layer[i] = new Layer(LayerGroesse,inputVektor);
+                return;
+            }
+        }
+    }
+    
+    public void compute(){
+       for(int i=1,n=layer.length;i<n;i++){
+            for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
+                Double wert = 0.0;
+                for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){
+                   wert = wert + layer[i-1].getNeuronen()[l].getWert() * this.gewichte[i-1][j][l];    
+            }
+            layer[i].getNeuronen()[j].setWert(Aktivierungsfunktion.sigmoid(wert));
+            }
+        }
     }
 
     public void print(){
-        Layer tmp = firstLayer;
-        while(tmp.next!=null){
-            tmp.printNeuronenWert();
-            tmp = tmp.next;
-        }
-        tmp.printNeuronenWert();
-    }
-
-    public void addInputVektor(Double[] input){
-            for(int i = 0;i<input.length;i++){
-                firstLayer.neuronen[i].setWert(input[i]);
-            }
-    }
-
-    public void compute(){
-     Layer tmp = firstLayer;
-     while(tmp.next!=null){
-        Neuron[] neuronen = tmp.getNeuronen();
-        Neuron[] nextneuronen = tmp.next.getNeuronen();
-        Neuron[] neueNeuronen = new Neuron[nextneuronen.length];
-        Double[] gewichte;
-
-        for(int i=0,n=neuronen.length;i<n;i++){
-            for(int j=0,m=nextneuronen.length;j<m;j++){
-                gewichte = nextneuronen[j].getGewichte();
-                Neuron neuron = new Neuron();
-                neuron.setWert(Aktivierungsfunktion.sigmoid(calcNextWert(gewichte,neuronen)));
-                neueNeuronen[j]=neuron;
-            }
-        }
-        tmp.next.setNeuronen(neueNeuronen);
-        tmp = tmp.next;
-     }
-}
-
-private Double calcNextWert(Double[] gewichte,Neuron[] neuronen){
-            //Berechnet Skalarprodukt
-        Double nextWert = 0.0;
-        for(int i=0,n=gewichte.length;i<n;i++){
-            nextWert = nextWert + gewichte[i]*neuronen[i].getWert();
-        } 
-        return nextWert;   
-        }
-       
-
-private Double[] MatrixVektorMulti(Double[][] matrix, Double[] vektor){
-    Double[] return_vektor = new Double[matrix.length];
-    for(int i=0;i<return_vektor.length;i++){
-        return_vektor[i] = 0.0;
-    }
-    for(int i =0;i<matrix.length;i++){
-        for(int j=0;j<matrix[0].length;j++){
-           return_vektor[i] = return_vektor[i] + matrix[i][j] * vektor[j];
-          
+        for(Layer l : layer){
+            l.printNeuronen();
         }
     }
-        return return_vektor;
-}
+
+
+  
+
+ 
+
 }
