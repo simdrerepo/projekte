@@ -1,7 +1,7 @@
-public class Tangenshyperbolicus implements Aktivierungsfunktion{
+public class Tangenshyperbolicus implements Funktion{
 
     @Override
-    public Double funktion(Double parameter) {
+    public Double execute(Double parameter) {
         return Math.tanh(parameter);
     }
     

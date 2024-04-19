@@ -1,7 +1,7 @@
-public class Identität implements Aktivierungsfunktion {
+public class Identität implements Funktion {
 
     @Override
-    public Double funktion(Double parameter) {
+    public Double execute(Double parameter) {
         return parameter;
     }
     

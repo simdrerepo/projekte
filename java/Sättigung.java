@@ -1,7 +1,7 @@
-public class Sättigung  implements Aktivierungsfunktion{
+public class Sättigung  implements Funktion{
 
     @Override
-    public Double funktion(Double parameter) {
+    public Double execute(Double parameter) {
         
         if(parameter >= 1.0){
             return 1.0;
