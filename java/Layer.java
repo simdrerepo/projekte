@@ -1,7 +1,7 @@
 public class Layer {
 
     private Neuron[] neuronen;
-  
+    
 
     public Layer(){
     }

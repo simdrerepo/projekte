@@ -1,10 +1,8 @@
-public class Aktivierungsfunktion {
+public interface Aktivierungsfunktion {
 
 
 
 
-    public static Double sigmoid(Double parameter){
-        return  1 / (1 + Math.exp(-parameter));
-    }
+    public Double funktion(Double parameter);
     
 }
