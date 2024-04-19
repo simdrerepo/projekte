@@ -61,6 +61,7 @@ public class Netz {
                 for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){
                    wert = wert + layer[i-1].getNeuronen()[l].getWert() * this.gewichte[i-1][j][l];    
             }
+            layer[i].getNeuronen()[j].setAktivierungsfunktion(new Sigmoid());;
             layer[i].getNeuronen()[j].setWert(wert);
             }
         }
