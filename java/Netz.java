@@ -10,13 +10,24 @@ public class Netz {
         // Legt ein Netz mit der Größe n an
         this.layer = new Layer[groesse];
     }
+    public Netz(int[] netzaufbau,Double[] inputVektor,Double[][][] gewichte){
+
+        this.layer = new Layer[netzaufbau.length]; // Anzahl der Layer bestimmen
+        this.gewichte=gewichte; // Gewichte setzen
+        addLayer(netzaufbau[0], inputVektor); // Input-Layer initialisieren
+        for(int i=1,n=netzaufbau.length;i<n;i++){
+            // restliche Layer initialisieren
+            addLayer(netzaufbau[i]);
+        }
+
+    }
 
     public void setGewichte(Double[][][] gewichte){
         // Setzt die Gewichte für jeden Layer
         this.gewichte=gewichte;
     }
    
-    public void addLayer(int LayerGroesse){
+    private void addLayer(int LayerGroesse){
         /*
          * Fügt einen Layer hinzu
          * LayerGroesse bestimmt dabei die Anzahl der Neuronen in einem Layer  
@@ -29,7 +40,7 @@ public class Netz {
         }
     }
     
-    public void addLayer(int LayerGroesse,Double[] inputVektor){
+    private void addLayer(int LayerGroesse,Double[] inputVektor){
          /*
           * Diese Funktion wird verwendet um den ersten Layer (Input Layer) hinzuzufügen
           * Da im Input Layer keine Berechnung stattfindet wird der Input Vektor mit übergeben,

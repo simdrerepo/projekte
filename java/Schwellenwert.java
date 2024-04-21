@@ -1,6 +1,6 @@
 public class Schwellenwert implements Funktion{
 
-    private Double schwellenwert = 1.0;
+    private Double schwellenwert = 1.5;
 
     @Override
     public Double execute(Double parameter) {

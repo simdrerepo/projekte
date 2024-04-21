@@ -18,7 +18,7 @@ public class Neuron {
         }
 
         public void printWert(){
-            System.out.println(wert);
+            System.out.println(getWert());
         }
        
     public Double getWert(){
