@@ -1,4 +1,4 @@
-
+import java.util.Arrays;
 
 public class main {
 
@@ -25,7 +25,9 @@ public class main {
         netz.compute(); 
         netz.print();
 
-     
+    
+
+        System.out.println( Arrays.toString(netz.extractOutputVektor()));
         
       
 

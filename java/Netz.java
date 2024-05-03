@@ -63,7 +63,19 @@ public class Netz {
                 return;
             }
         }
+    } 
+
+    public Double[] extractOutputVektor(){
+        Layer l = this.layer[this.layer.length-1];
+        Double[] outputVektor = new Double[l.getNeuronen().length];
+        for(int i=0,n=l.getNeuronen().length;i<n;i++){
+            outputVektor[i] = l.getNeuronen()[i].getOutput();
+        }
+
+        return outputVektor;
     }
+
+  
     
     public void compute(){
         /*
@@ -82,32 +94,31 @@ public class Netz {
                 Double wert = 0.0;
                 for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){
                     Neuron neuron = layer[i-1].getNeuronen()[l];         
-                   wert = wert + neuron.getWertWith() * this.gewichte[i-1][j][l];                           
+                   wert = wert + neuron.getOutput() * this.gewichte[i-1][j][l];                           
             }      
             wert = wert + this.gewichte[i-1][j][this.gewichte[i-1][j].length-1]  * this.bias; // Bias addieren   
-            if(i==n-1){
-                layer[i].getNeuronen()[j].setAktivierungsfunktion(new Identität());
-                layer[i].getNeuronen()[j].setWertWith(wert);
-                layer[i].getNeuronen()[j].setAktivierungsfunktion(this.aktivierungsFunktion);
-                
-            } 
-            else{
-            layer[i].getNeuronen()[j].setWertWith(wert);     
-            }
+       
+            layer[i].getNeuronen()[j].setInput(wert);     
+            layer[i].getNeuronen()[j].setOutput(wert, this.aktivierungsFunktion);
+            
             }
            
         }
     }
 
     public void print(){
+        System.out.println("---------------------------------------------------------");
         for(int i=0,n=layer.length;i<n;i++){
-
+            System.out.println("---------------------------Layer-"+(i+1)+"-----------------------");
+            System.out.println("---------------------------------------------------------");
+            System.out.printf("| %-25s | %-25s |%n", "Input", "Output");
            for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
-
-                System.out.println(layer[i].getNeuronen()[j].getWert().toString());
-
+           
+            System.out.printf("| %-25s | %-25s |%n", layer[i].getNeuronen()[j].getInput().toString(), layer[i].getNeuronen()[j].getOutput().toString());
+                //System.out.print("Input : "+layer[i].getNeuronen()[j].getInput().toString()+" Output : "+layer[i].getNeuronen()[j].getOutput().toString());
+               // System.out.println();
            }
-           System.out.println("-----------------------------");
+           System.out.println("---------------------------------------------------------");
         }
        
     }

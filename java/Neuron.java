@@ -2,53 +2,50 @@ public class Neuron {
         
         
         private Funktion aktivierungsfunktion = null;
-        private Funktion ausgabefunktion;
-        private Double wert ;
+        private Double input ;
+        private Double output;
        
         
      
        
         public Neuron(Double wert){
             aktivierungsfunktion = new Identität();
-            ausgabefunktion = new Identität();
-            this.wert=wert;
+            this.input=wert;
+            this.output=wert;
              
         }
         public Neuron(Double wert,Funktion aktivierungsFunktion){
             this.aktivierungsfunktion=aktivierungsFunktion;
-            this.ausgabefunktion = new Identität();
-            this.wert=wert;
+            this.input=wert;
+            this.input=wert;
         }
         public Neuron(){ 
         }
 
-        public void printWert(){
-            System.out.println(getWertWith());
-        }
+     
        
-    public Double getWert(){
-        return this.wert;
+    public Double getInput(){
+        return this.input;
     }
-
-    public Double getWertWith(){
-
-        return this.ausgabefunktion.execute(this.wert);
+    public Double getOutput(){
+        return this.output;
     }
-    public void setWertWith(Double d){
-        this.wert = this.aktivierungsfunktion.execute(d);
+    public void setOutput(Double d,Funktion f){
+        this.output=f.execute(d);
     }
-
+    public void setInput(Double d){
+        this.input=d;
+        
+    }
 
     public void setWert(Double d){
        
-            this.wert = d;
+            this.input = d;
         
         
     }
 
-   public void setAusgabefunktion(Funktion ausgabefunktion){
-        this.ausgabefunktion=ausgabefunktion;
-   }
+  
    
     public void setAktivierungsfunktion(Funktion aktivierungsfunktion){
         this.aktivierungsfunktion=aktivierungsfunktion;
