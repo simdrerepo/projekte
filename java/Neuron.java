@@ -11,29 +11,42 @@ public class Neuron {
         public Neuron(Double wert){
             aktivierungsfunktion = new Identität();
             ausgabefunktion = new Identität();
-            this.wert=aktivierungsfunktion.execute(wert);
+            this.wert=wert;
              
+        }
+        public Neuron(Double wert,Funktion aktivierungsFunktion){
+            this.aktivierungsfunktion=aktivierungsFunktion;
+            this.ausgabefunktion = new Identität();
+            this.wert=wert;
         }
         public Neuron(){ 
         }
 
         public void printWert(){
-            System.out.println(getWert());
+            System.out.println(getWertWith());
         }
        
     public Double getWert(){
+        return this.wert;
+    }
+
+    public Double getWertWith(){
+
         return this.ausgabefunktion.execute(this.wert);
+    }
+    public void setWertWith(Double d){
+        this.wert = this.aktivierungsfunktion.execute(d);
     }
 
 
     public void setWert(Double d){
        
-            this.wert = this.aktivierungsfunktion.execute(d);
+            this.wert = d;
         
         
     }
 
-   public void setAusgabefunltion(Funktion ausgabefunktion){
+   public void setAusgabefunktion(Funktion ausgabefunktion){
         this.ausgabefunktion=ausgabefunktion;
    }
    

@@ -4,12 +4,8 @@ public class Schwellenwert implements Funktion{
 
     @Override
     public Double execute(Double parameter) {
-
-        if(parameter >= schwellenwert){
-            return 1.0;
-        }
-        else return 0.0;
-       
+     
+       return (parameter >= schwellenwert) ? 1.0 : 0.0;
     }
 
     public void setSchwellenwert(Double d){
