@@ -4,6 +4,7 @@ public class Neuron {
         private Funktion aktivierungsfunktion = null;
         private Double input ;
         private Double output;
+        private Double deltawert;
        
         
      
@@ -29,6 +30,12 @@ public class Neuron {
     }
     public Double getOutput(){
         return this.output;
+    }
+    public Double getDeltawert(){
+        return this.deltawert;
+    }
+    public void setDeltawert(Double d){
+        this.deltawert=d;
     }
     public void setOutput(Double d,Funktion f){
         this.output=f.execute(d);

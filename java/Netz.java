@@ -1,13 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
-
-
-
 
 public class Netz {
 
@@ -74,11 +65,11 @@ public class Netz {
         }
     } 
 
-    public Double[] extractOutputVektor(){
+    public Neuron[] extractOutputVektor(){
         Layer l = this.layer[this.layer.length-1];
-        Double[] outputVektor = new Double[l.getNeuronen().length];
+        Neuron[] outputVektor = new Neuron[l.getNeuronen().length];
         for(int i=0,n=l.getNeuronen().length;i<n;i++){
-            outputVektor[i] = l.getNeuronen()[i].getOutput();
+            outputVektor[i] = l.getNeuronen()[i];
         }
 
         return outputVektor;
@@ -131,6 +122,69 @@ public class Netz {
         }
        
     }
+    public void printDeltaWerte(){  
+        for(int i=1,n=layer.length;i<n;i++){
+            for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
+                System.out.println(layer[i].getNeuronen()[j].getDeltawert().toString());
+            }
+            System.out.println("------------------------------------");
+        }
+
+    }
+
+        public void backPropagade(Double[] sollVektor) {
+            if(sollVektor.length!=this.layer[this.layer.length-1].getNeuronen().length){
+               
+                    return;
+
+            }
+            Funktion f = new Sigmoid_Ableitung();
+
+                // Deltawerte für die Ouputschicht berechnen
+                for(int i=0,n=layer[this.layer.length-1].getNeuronen().length;i<n;i++){
+                    Neuron neuron = layer[this.layer.length-1].getNeuronen()[i];
+                    neuron.setDeltawert(f.execute(neuron.getInput())*(sollVektor[i]-neuron.getOutput()));
+                }
+       
+            for(int i=layer.length-2;i>0;i--){
+                for(int j=0,n=layer[i].getNeuronen().length;j<n;j++){
+                    Neuron neuron = layer[i].getNeuronen()[j];
+                    Double deltawert = 0.0;
+                        for(int k=0,l=layer[i+1].getNeuronen().length;k<l;k++){
+                            Neuron neuron2 = layer[i+1].getNeuronen()[k];
+                        
+                            deltawert+=neuron2.getDeltawert()*gewichte[i][k][j+1];
+                            
+                            System.out.println("deltawert : "+neuron2.getDeltawert()+" * "+"gewicht : "+gewichte[i][k][j+1]+Arrays.toString(gewichte[i][k]) + " i = "+i+" j = "+j+" k = "+k);
+                         }
+                         System.out.println("dw = "+deltawert);
+
+                        neuron.setDeltawert(f.execute(neuron.getInput())*deltawert);
+                }
+            }
+        }
+
+        public void updateGewichte(){
+            Double[] deltawerte;
+           
+            for(int i=1,n=this.layer.length;i<n;i++){
+              deltawerte = new Double[this.layer[i].getNeuronen().length];
+              for(int j=0,m=this.layer[i].getNeuronen().length;j<m;j++){
+                deltawerte[j] = this.layer[i].getNeuronen()[j].getDeltawert();
+              
+              }
+              System.out.println(Arrays.toString(deltawerte));
+              
+
+            }
+        
+
+        }
+
+
+ 
+    }
+
 
 
 
@@ -138,11 +192,3 @@ public class Netz {
 
  
 
-
-
-
-
-
- 
-
-}
