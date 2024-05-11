@@ -25,13 +25,15 @@ public class main {
         MyCSVReader r = new MyCSVReader(path);
         Double[][][] gewichte_ampel = r.convert();
         System.out.println(Arrays.deepToString(gewichte_ampel));
-         int[] netzaufbau = {3,3,4}; 
-        Netz netz = new Netz(netzaufbau,inputVektor,gewichte_ampel,new Sigmoid(),1.0); 
+        int[] netzaufbau = {3,3,4}; 
+        Netz netz = new Netz(netzaufbau,inputVektor,gewichte,new Sigmoid(),1.0); 
         netz.compute(); 
         netz.print();
         netz.backPropagade(sollVektor);
         netz.printDeltaWerte();
         netz.updateGewichte();
+        
+      
     
 
 

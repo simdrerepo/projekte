@@ -14,5 +14,11 @@ public class Schwellenwert implements Funktion{
     public Double getSchwellenwert(){
         return this.schwellenwert;
     }
+
+    @Override
+    public Double execute(Double[] output, Double[] soll) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+    }
     
 }

@@ -4,9 +4,9 @@ public class Netz {
 
     private Layer[] layer;
     private Double bias;
-
     private Double[][][] gewichte; 
     private Funktion aktivierungsFunktion;
+    private Double lernparameter = 1.0;
  
 
     public Netz(int groesse){
@@ -16,7 +16,7 @@ public class Netz {
     public Netz(int[] netzaufbau,Double[] inputVektor,Double[][][] gewichte,Funktion aktivierungsFunktion,Double bias){
 
         this.layer = new Layer[netzaufbau.length]; // Anzahl der Layer bestimmen
-       this.aktivierungsFunktion=aktivierungsFunktion;
+        this.aktivierungsFunktion=aktivierungsFunktion;
         this.bias=bias;
         this.gewichte=gewichte; // Gewichte setzen
         addLayer(netzaufbau[0], inputVektor,aktivierungsFunktion); // Input-Layer initialisieren
@@ -65,13 +65,12 @@ public class Netz {
         }
     } 
 
-    public Neuron[] extractOutputVektor(){
+    public Double[] extractOutputVektor(){
         Layer l = this.layer[this.layer.length-1];
-        Neuron[] outputVektor = new Neuron[l.getNeuronen().length];
+        Double[] outputVektor = new Double[l.getNeuronen().length];
         for(int i=0,n=l.getNeuronen().length;i<n;i++){
-            outputVektor[i] = l.getNeuronen()[i];
+            outputVektor[i] = l.getNeuronen()[i].getOutput();
         }
-
         return outputVektor;
     }
 
@@ -97,9 +96,14 @@ public class Netz {
                    wert = wert + neuron.getOutput() * this.gewichte[i-1][j][l];                           
             }      
             wert = wert + this.gewichte[i-1][j][this.gewichte[i-1][j].length-1]  * this.bias; // Bias addieren   
-       
-            layer[i].getNeuronen()[j].setInput(wert);     
+            
+            layer[i].getNeuronen()[j].setInput(wert);
+            if(i==layer.length-1){
+                layer[i].getNeuronen()[j].setOutput(wert);
+            } 
+            else{
             layer[i].getNeuronen()[j].setOutput(wert, this.aktivierungsFunktion);
+            }
             
             }
            
@@ -122,6 +126,10 @@ public class Netz {
         }
        
     }
+
+    public Double[][][] getGewichte(){
+        return this.gewichte;
+    }
     public void printDeltaWerte(){  
         for(int i=1,n=layer.length;i<n;i++){
             for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
@@ -143,7 +151,7 @@ public class Netz {
                 // Deltawerte für die Ouputschicht berechnen
                 for(int i=0,n=layer[this.layer.length-1].getNeuronen().length;i<n;i++){
                     Neuron neuron = layer[this.layer.length-1].getNeuronen()[i];
-                    neuron.setDeltawert(f.execute(neuron.getInput())*(sollVektor[i]-neuron.getOutput()));
+                    neuron.setDeltawert(f.execute(neuron.getInput())*(sollVektor[i]-neuron.getInput()));
                 }
        
             for(int i=layer.length-2;i>0;i--){
@@ -153,34 +161,53 @@ public class Netz {
                         for(int k=0,l=layer[i+1].getNeuronen().length;k<l;k++){
                             Neuron neuron2 = layer[i+1].getNeuronen()[k];
                         
-                            deltawert+=neuron2.getDeltawert()*gewichte[i][k][j+1];
+                            deltawert+=neuron2.getDeltawert()*gewichte[i][k][j];
                             
-                            System.out.println("deltawert : "+neuron2.getDeltawert()+" * "+"gewicht : "+gewichte[i][k][j+1]+Arrays.toString(gewichte[i][k]) + " i = "+i+" j = "+j+" k = "+k);
+                            System.out.println("deltawert : "+neuron2.getDeltawert()+" * "+"gewicht : "+gewichte[i][k][j]+Arrays.toString(gewichte[i][k]) + " i = "+i+" j = "+j+" k = "+k);
                          }
-                         System.out.println("dw = "+deltawert);
-
+                         System.out.println("dw = "+f.execute(neuron.getInput())*deltawert);
+                        
                         neuron.setDeltawert(f.execute(neuron.getInput())*deltawert);
                 }
             }
         }
 
-        public void updateGewichte(){
-            Double[] deltawerte;
-           
-            for(int i=1,n=this.layer.length;i<n;i++){
-              deltawerte = new Double[this.layer[i].getNeuronen().length];
-              for(int j=0,m=this.layer[i].getNeuronen().length;j<m;j++){
-                deltawerte[j] = this.layer[i].getNeuronen()[j].getDeltawert();
-              
-              }
-              System.out.println(Arrays.toString(deltawerte));
-              
+        public Double[][][] updateGewichte(){
+            
+            Double[][][] gewichte_neu ={{{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}},{{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}}};
+         
+         
+            
+            for(int i=1,n=layer.length;i<n;i++){
+                for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
+                    Double wert = 0.0;
+                    Neuron post_neuron = layer[i].getNeuronen()[j];
+                    Double deltawert = layer[i].getNeuronen()[j].getDeltawert();
+                    for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){
+                        Neuron neuron = layer[i-1].getNeuronen()[l];         
+                      
+                        wert =  (this.lernparameter*(deltawert * post_neuron.getOutput())) + this.gewichte[i-1][j][l]; 
+                        System.out.println("deltawert:"+deltawert+" * "+"NeuronOutput:"+post_neuron.getOutput()+" + "+"Gewicht:"+this.gewichte[i-1][j][l]+" = "+wert);
+                        System.out.print(wert+" | ");
+                        System.out.println(this.gewichte[i-1][j][l]);
+                        gewichte_neu[i-1][j][l] = wert;
+                        System.out.println(gewichte_neu[i-1][j][l]);
+                        System.out.println(this.gewichte[i-1][j][l]);                               
+                }      
+                
+                gewichte_neu[i-1][j][this.gewichte[i-1][j].length-1] = this.gewichte[i-1][j][this.gewichte[i-1][j].length-1]+(this.lernparameter*(deltawert * this.bias));
+                System.out.println((deltawert *this.bias)+this.gewichte[i-1][j][this.gewichte[i-1][j].length-1]);
 
+                
+                }
+               
             }
-        
-
+            System.out.println(Arrays.deepToString(gewichte_neu));
+            
+            return gewichte_neu;
         }
 
+        
 
  
     }
