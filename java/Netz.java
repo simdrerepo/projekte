@@ -4,20 +4,29 @@ public class Netz {
 
     private Layer[] layer;
     private Double bias;
+    private Double fehler=1.0;
     private Double[][][] gewichte; 
     private Funktion aktivierungsFunktion;
-    private Double lernparameter = 1.0;
+    private Funktion fehlerFunktion;
+    private Funktion ableitungsFunktion;
+    private Double lernparameter;  // Eta
+    private Double[] sollvektor;
+    
  
 
     public Netz(int groesse){
         // Legt ein Netz mit der Größe n an
         this.layer = new Layer[groesse];
     }
-    public Netz(int[] netzaufbau,Double[] inputVektor,Double[][][] gewichte,Funktion aktivierungsFunktion,Double bias){
+    public Netz(int[] netzaufbau,Double[] inputVektor,Double[][][] gewichte,Double[] sollVektor,Funktion aktivierungsFunktion,Funktion fehlerFunktion,Funktion ableitungsFunktion,Double bias,Double lernparameter){
 
         this.layer = new Layer[netzaufbau.length]; // Anzahl der Layer bestimmen
         this.aktivierungsFunktion=aktivierungsFunktion;
+        this.ableitungsFunktion=ableitungsFunktion;
+        this.fehlerFunktion=fehlerFunktion;
         this.bias=bias;
+        this.lernparameter = lernparameter;
+        this.sollvektor=sollVektor;
         this.gewichte=gewichte; // Gewichte setzen
         addLayer(netzaufbau[0], inputVektor,aktivierungsFunktion); // Input-Layer initialisieren
         for(int i=1,n=netzaufbau.length;i<n;i++){
@@ -43,9 +52,10 @@ public class Netz {
          * Fügt einen Layer hinzu
          * LayerGroesse bestimmt dabei die Anzahl der Neuronen in einem Layer  
          */
+        this.aktivierungsFunktion=aktivierungsFunktion;
         for(int i=0,n=this.layer.length;i<n;i++){
             if(layer[i]==null){
-                layer[i] = new Layer(LayerGroesse,aktivierungsFunktion);
+                layer[i] = new Layer(LayerGroesse);
                 return;
             }
         }
@@ -57,15 +67,18 @@ public class Netz {
           * Da im Input Layer keine Berechnung stattfindet wird der Input Vektor mit übergeben,
           * um die Neuronen mit den Entsprechende Werten zu versehen 
           */
+          this.aktivierungsFunktion=aktivierungsFunktion;
         for(int i=0,n=layer.length;i<n;i++){
             if(layer[i]==null){
-                layer[i] = new Layer(LayerGroesse,inputVektor,aktivierungsFunktion);
+                layer[i] = new Layer(LayerGroesse,inputVektor);
                 return;
             }
         }
     } 
 
     public Double[] extractOutputVektor(){
+        // Extrahiert den Outputvektor
+        // Convertiert diesen zu einem Doublevektor
         Layer l = this.layer[this.layer.length-1];
         Double[] outputVektor = new Double[l.getNeuronen().length];
         for(int i=0,n=l.getNeuronen().length;i<n;i++){
@@ -73,10 +86,8 @@ public class Netz {
         }
         return outputVektor;
     }
-
-  
     
-    public void compute(){
+    public void feedForward(){
         /*
          * Startet die Berechnung des Neuronalen Netzes
          * 
@@ -89,22 +100,23 @@ public class Netz {
          * 
          */
        for(int i=1,n=layer.length;i<n;i++){
-            for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
+            for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){ // Iteration über die Neuronen deren Werte wir berechnen wollen
                 Double wert = 0.0;
-                for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){
-                    Neuron neuron = layer[i-1].getNeuronen()[l];         
-                   wert = wert + neuron.getOutput() * this.gewichte[i-1][j][l];                           
+                for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){ // Iteration über die Neuronen der Schicht davor
+                    Neuron neuron = layer[i-1].getNeuronen()[l];    // Neuron     
+                   wert = wert + neuron.getOutput() * this.gewichte[i-1][j][l];    // Neuronoutput * zugehörigem Gewicht  -> Aufaddieren                   
             }      
-            wert = wert + this.gewichte[i-1][j][this.gewichte[i-1][j].length-1]  * this.bias; // Bias addieren   
-            
-            layer[i].getNeuronen()[j].setInput(wert);
+            wert = wert + this.gewichte[i-1][j][this.gewichte[i-1][j].length-1]  * this.bias; // Bias + zu gehörigem Gewicht addieren 
+            layer[i].getNeuronen()[j].setInput(wert); // Berechneten Wert für das Neuron setzen
             if(i==layer.length-1){
+                // Der letzte Layer ist der Outputlayer
+                // Nach Convention ist hier der Input gleich dem Output
                 layer[i].getNeuronen()[j].setOutput(wert);
             } 
             else{
+                // 
             layer[i].getNeuronen()[j].setOutput(wert, this.aktivierungsFunktion);
             }
-            
             }
            
         }
@@ -130,6 +142,12 @@ public class Netz {
     public Double[][][] getGewichte(){
         return this.gewichte;
     }
+    public Double[] getSollvektor(){
+        return this.sollvektor;
+    }
+    public void setSollvektor(Double[] sollvektor){
+        this.sollvektor=sollvektor;
+    }
     public void printDeltaWerte(){  
         for(int i=1,n=layer.length;i<n;i++){
             for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
@@ -140,34 +158,28 @@ public class Netz {
 
     }
 
-        public void backPropagade(Double[] sollVektor) {
-            if(sollVektor.length!=this.layer[this.layer.length-1].getNeuronen().length){
-               
+        public void calcDeltawerte() {
+            if(this.sollvektor.length!=this.layer[this.layer.length-1].getNeuronen().length){
                     return;
-
             }
-            Funktion f = new Sigmoid_Ableitung();
-
                 // Deltawerte für die Ouputschicht berechnen
                 for(int i=0,n=layer[this.layer.length-1].getNeuronen().length;i<n;i++){
                     Neuron neuron = layer[this.layer.length-1].getNeuronen()[i];
-                    neuron.setDeltawert(f.execute(neuron.getInput())*(sollVektor[i]-neuron.getInput()));
+                    neuron.setDeltawert(ableitungsFunktion.execute(neuron.getInput())*(this.sollvektor[i]-neuron.getInput()));
                 }
-       
-            for(int i=layer.length-2;i>0;i--){
-                for(int j=0,n=layer[i].getNeuronen().length;j<n;j++){
+                // Deltawerte für die Hiddenschicht berechnen
+            for(int i=layer.length-2;i>0;i--){ 
+                for(int j=0,n=layer[i].getNeuronen().length;j<n;j++){// Iteration über die Schicht vor der letzten Schicht
                     Neuron neuron = layer[i].getNeuronen()[j];
                     Double deltawert = 0.0;
                         for(int k=0,l=layer[i+1].getNeuronen().length;k<l;k++){
                             Neuron neuron2 = layer[i+1].getNeuronen()[k];
-                        
                             deltawert+=neuron2.getDeltawert()*gewichte[i][k][j];
-                            
                             System.out.println("deltawert : "+neuron2.getDeltawert()+" * "+"gewicht : "+gewichte[i][k][j]+Arrays.toString(gewichte[i][k]) + " i = "+i+" j = "+j+" k = "+k);
                          }
-                         System.out.println("dw = "+f.execute(neuron.getInput())*deltawert);
+                         System.out.println("dw = "+ableitungsFunktion.execute(neuron.getInput())*deltawert);
                         
-                        neuron.setDeltawert(f.execute(neuron.getInput())*deltawert);
+                        neuron.setDeltawert(ableitungsFunktion.execute(neuron.getInput())*deltawert);
                 }
             }
         }
@@ -176,16 +188,12 @@ public class Netz {
             
             Double[][][] gewichte_neu ={{{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}},{{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}}};
          
-         
-            
             for(int i=1,n=layer.length;i<n;i++){
                 for(int j=0,m=layer[i].getNeuronen().length;j<m;j++){
                     Double wert = 0.0;
                     Neuron post_neuron = layer[i].getNeuronen()[j];
                     Double deltawert = layer[i].getNeuronen()[j].getDeltawert();
-                    for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){
-                        Neuron neuron = layer[i-1].getNeuronen()[l];         
-                      
+                    for(int l=0,k=layer[i-1].getNeuronen().length;l<k;l++){        
                         wert =  (this.lernparameter*(deltawert * post_neuron.getOutput())) + this.gewichte[i-1][j][l]; 
                         System.out.println("deltawert:"+deltawert+" * "+"NeuronOutput:"+post_neuron.getOutput()+" + "+"Gewicht:"+this.gewichte[i-1][j][l]+" = "+wert);
                         System.out.print(wert+" | ");
@@ -207,8 +215,33 @@ public class Netz {
             return gewichte_neu;
         }
 
-        
+        public Double calcFehler(){
+            return this.fehlerFunktion.execute(extractOutputVektor(),this.sollvektor); 
+       }
 
+       public Boolean isImprovement(Double[][][] updated_weights){ 
+            this.feedForward();
+        return null;
+       }
+
+    public Double[][][] backPropagate(){
+        this.calcDeltawerte();
+        return this.updateGewichte();
+    }
+    public void start(){
+        Double fehler_neu=0.0; 
+        this.feedForward();
+        fehler_neu=this.calcFehler();
+       
+        while(Math.abs(this.fehler-fehler_neu)>0.000000000001){
+            
+            Double[][][] updated_weights = this.backPropagate();
+            this.setGewichte(updated_weights);
+            this.feedForward();
+            this.fehler = fehler_neu;
+            fehler_neu = this.calcFehler();
+        }
+    }
  
     }
 

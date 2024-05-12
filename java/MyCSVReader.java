@@ -9,11 +9,9 @@ public class MyCSVReader {
 
 private String path;
 
-
 public MyCSVReader (String pathString){
     this.path=pathString;
 }
-
 
 public List<String[]> read(String splitBy){
 
