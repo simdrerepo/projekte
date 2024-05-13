@@ -1,3 +1,4 @@
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Netz {
 
@@ -10,13 +11,14 @@ public class Netz {
     private Funktion ableitungsFunktion;
     private Double lernparameter; // Eta
     private Double[] sollvektor;
+    private int[] netzaufbau;
 
     public Netz(int groesse) {
         // Legt ein Netz mit der Größe n an
         this.layer = new Layer[groesse];
     }
 
-    public Netz(int[] netzaufbau, Double[] inputVektor, Double[][][] gewichte, Double[] sollVektor,
+    public Netz(int[] netzaufbau, Double[] inputVektor, Double[] sollVektor,
             Funktion aktivierungsFunktion, Funktion fehlerFunktion, Funktion ableitungsFunktion, Double bias,
             Double lernparameter) {
 
@@ -25,15 +27,37 @@ public class Netz {
         this.ableitungsFunktion = ableitungsFunktion;
         this.fehlerFunktion = fehlerFunktion;
         this.bias = bias;
+        this.netzaufbau = netzaufbau;
         this.lernparameter = lernparameter;
         this.sollvektor = sollVektor;
-        this.gewichte = gewichte; // Gewichte setzen
+        this.gewichte = this.initializeWeights(-0.04, 0.04); // Gewichte setzen
         addLayer(netzaufbau[0], inputVektor, aktivierungsFunktion); // Input-Layer initialisieren
         for (int i = 1, n = netzaufbau.length; i < n; i++) {
             // restliche Layer initialisieren
             addLayer(netzaufbau[i], aktivierungsFunktion);
         }
 
+    }
+
+    public Double[][][] initializeWeights(Double min, Double max) {
+        Double[][][] weights = initialize3dArray();
+        for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[i].length; j++) {
+                for (int k = 0; k < weights[i][j].length; k++) {
+                    weights[i][j][k] = ThreadLocalRandom.current().nextDouble(min, max);
+                }
+            }
+        }
+
+        return weights;
+    }
+
+    private Double[][][] initialize3dArray() {
+        Double[][][] weights = new Double[this.netzaufbau.length - 1][][];
+        for (int i = 0, n = weights.length; i < n; i++) {
+            weights[i] = new Double[this.netzaufbau[i + 1]][this.netzaufbau[i] + 1];
+        }
+        return weights;
     }
 
     public void resetInputvektor(Double[] inputVektor) {
@@ -88,7 +112,7 @@ public class Netz {
         return outputVektor;
     }
 
-    public void feedForward() {
+    private void feedForward() {
         /*
          * Startet die Berechnung des Neuronalen Netzes
          * 
@@ -172,7 +196,7 @@ public class Netz {
 
     }
 
-    public void calcDeltawerte() {
+    private void calcDeltawerte() {
         if (this.sollvektor.length != this.layer[this.layer.length - 1].getNeuronen().length) {
             return;
         }
@@ -197,10 +221,9 @@ public class Netz {
         }
     }
 
-    public Double[][][] updateGewichte() {
+    private Double[][][] updateGewichte() {
 
-        Double[][][] gewichte_neu = { { { 0.0, 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0, 0.0 } },
-                { { 0.0, 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0, 0.0 } } };
+        Double[][][] gewichte_neu = this.initialize3dArray();
 
         for (int i = 1, n = layer.length; i < n; i++) {
             for (int j = 0, m = layer[i].getNeuronen().length; j < m; j++) {
@@ -209,37 +232,28 @@ public class Netz {
                 Double deltawert = layer[i].getNeuronen()[j].getDeltawert();
                 for (int l = 0, k = layer[i - 1].getNeuronen().length; l < k; l++) {
                     wert = (this.lernparameter * (deltawert * post_neuron.getOutput())) + this.gewichte[i - 1][j][l];
-
                     gewichte_neu[i - 1][j][l] = wert;
-
                 }
-
                 gewichte_neu[i - 1][j][this.gewichte[i - 1][j].length
                         - 1] = this.gewichte[i - 1][j][this.gewichte[i - 1][j].length - 1]
                                 + (this.lernparameter * (deltawert * this.bias));
-
             }
-
         }
-
         return gewichte_neu;
     }
 
-    public Double calcFehler() {
+    private Double calcFehler() {
         return this.fehlerFunktion.execute(extractOutputVektor(), this.sollvektor);
     }
 
-    public Boolean isImprovement(Double[][][] updated_weights) {
-        this.feedForward();
-        return null;
-    }
-
-    public Double[][][] backPropagate() {
+    private Double[][][] backPropagate() {
         this.calcDeltawerte();
         return this.updateGewichte();
     }
 
     public void start() {
+        long start = System.currentTimeMillis();
+
         Double fehler_neu = 0.0;
         Double prev_fehler = 0.0;
         Double prev_fehler_neu = 0.0;
@@ -263,9 +277,11 @@ public class Netz {
 
             } else {
                 this.lernparameter = this.lernparameter * 1.1; // wenn der neue fehler kleiner als der alte ist, den
-                                                               // perparameter erhöhen und weiter machen :-)
+                                                               // lernparameter erhöhen und weiter machen :-)
             }
         }
+        long end = System.currentTimeMillis();
+        System.out.println("Finished in " + (end - start) + " ms");
     }
 
 }
