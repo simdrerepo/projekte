@@ -3,17 +3,6 @@ import java.util.Arrays;
 
 public class main {
 
-    public static Double[] generateInputVektor(int laenge){
-        Double[] vektor = new Double[laenge];
-        for(int i=0,n=vektor.length;i<n;i++){
-            vektor[i] = main.randomInbetween(-1, 1);
-        }
-        return vektor;
-    }
-
-    public static Double randomInbetween(int min, int max){
-        return Math.floor(((Math.random() * (max - min)) + min)*100) / 100;
-    }
     
 
     public static void main(String[] args) {
@@ -28,9 +17,8 @@ public class main {
             {{-0.008,0.06,0.04,-0.08},{0.01,-0.06,0.06,0.06},{0.01,-0.027,0.08,0.09},{0.00029,-0.01,0.08,-0.001}}};
         MyCSVReader r = new MyCSVReader(path);
         Double[][][] gewichte_ampel = r.convert();
-        System.out.println(Arrays.deepToString(gewichte_ampel));
         int[] netzaufbau = {3,3,4}; 
-        Netz netz = new Netz(netzaufbau,inputVektor,gewichte,sollVektor,new Sigmoid(),new Quadratischerfehler(),new Sigmoid_Ableitung(),1.0,0.1); 
+        Netz netz = new Netz(netzaufbau,inputVektor,gewichte,sollVektor,new Sigmoid(),new Quadratischerfehler(),new Sigmoid_Ableitung(),1.0,0.001); 
         
         netz.start();
         netz.print();
