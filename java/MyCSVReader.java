@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -27,7 +26,7 @@ public class MyCSVReader {
 
             while ((line = br.readLine()) != null) {
                 String[] array = line.split(splitBy);
-                System.out.println(Arrays.toString(array));
+            
                 list.add(array);
             }
             br.close();
