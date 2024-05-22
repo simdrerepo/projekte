@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 public class MyCSVReader {
 
     private String path;
+    
 
     public MyCSVReader(String pathString) {
         this.path = pathString;
