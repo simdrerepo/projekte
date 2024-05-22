@@ -6,18 +6,18 @@ public class Layer {
     public Layer(){
     }
     
-    public Layer(int AnzahlNeuronen,Double[] inputVektor){
+    public Layer(int AnzahlNeuronen,Double[] inputVektor,Funktion aktivierungsFunktion){
         this.neuronen = new Neuron[AnzahlNeuronen];
         for(int i=0;i<AnzahlNeuronen;i++){
-            neuronen[i] = new Neuron(inputVektor[i]);
+            neuronen[i] = new Neuron(inputVektor[i],aktivierungsFunktion);
            
         }
     }
 
-    public Layer(int AnzahlNeuronen){
+    public Layer(int AnzahlNeuronen,Funktion aktivierungsFunktion){
         this.neuronen=new Neuron[AnzahlNeuronen];
         for(int i =0;i<AnzahlNeuronen;i++){
-            neuronen[i] = new Neuron(0.0);
+            neuronen[i] = new Neuron(0.0,aktivierungsFunktion);
            
         }
     }

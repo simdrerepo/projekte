@@ -4,9 +4,8 @@ public class Netz {
 
     private Layer[] layer;
     private Double bias;
-    private Double fehler = 1.0;
+    private Double fehler = Double.MAX_VALUE;
     private Double[][][] gewichte;
-    private Funktion aktivierungsFunktion;
     private Funktion fehlerFunktion;
     private Funktion ableitungsFunktion;
     private Double lernparameter; // Eta
@@ -23,7 +22,6 @@ public class Netz {
             Double lernparameter) {
 
         this.layer = new Layer[netzaufbau.length]; // Anzahl der Layer bestimmen
-        this.aktivierungsFunktion = aktivierungsFunktion;
         this.ableitungsFunktion = ableitungsFunktion;
         this.fehlerFunktion = fehlerFunktion;
         this.bias = bias;
@@ -62,7 +60,8 @@ public class Netz {
 
     public void resetInputvektor(Double[] inputVektor) {
         for (int i = 0, n = this.layer[0].getNeuronen().length; i < n; i++) {
-            layer[0].getNeuronen()[i].setWert(inputVektor[i]);
+            layer[0].getNeuronen()[i].setInput(inputVektor[i]);
+            layer[0].getNeuronen()[i].setOutput(inputVektor[i]);
         }
     }
 
@@ -76,10 +75,10 @@ public class Netz {
          * Fügt einen Layer hinzu
          * LayerGroesse bestimmt dabei die Anzahl der Neuronen in einem Layer
          */
-        this.aktivierungsFunktion = aktivierungsFunktion;
+       
         for (int i = 0, n = this.layer.length; i < n; i++) {
             if (layer[i] == null) {
-                layer[i] = new Layer(LayerGroesse);
+                layer[i] = new Layer(LayerGroesse,aktivierungsFunktion);
                 return;
             }
         }
@@ -92,10 +91,10 @@ public class Netz {
          * übergeben,
          * um die Neuronen mit den Entsprechende Werten zu versehen
          */
-        this.aktivierungsFunktion = aktivierungsFunktion;
+       
         for (int i = 0, n = layer.length; i < n; i++) {
             if (layer[i] == null) {
-                layer[i] = new Layer(LayerGroesse, inputVektor);
+                layer[i] = new Layer(LayerGroesse, inputVektor,aktivierungsFunktion);
                 return;
             }
         }
@@ -141,15 +140,9 @@ public class Netz {
                                                                                                        // gehörigem
                                                                                                        // Gewicht
                                                                                                        // addieren
-                layer[i].getNeuronen()[j].setInput(wert); // Berechneten Wert für das Neuron setzen
-                if (i == layer.length - 1) {
-                    // Der letzte Layer ist der Outputlayer
-                    // Nach Convention ist hier der Input gleich dem Output
-                    layer[i].getNeuronen()[j].setOutput(wert);
-                } else {
-                    //
-                    layer[i].getNeuronen()[j].setOutput(wert, this.aktivierungsFunktion);
-                }
+                layer[i].getNeuronen()[j].setInput(wert);
+                if (i == layer.length - 1) {layer[i].getNeuronen()[j].setOutput(wert);
+                } else {layer[i].getNeuronen()[j].setOutput(wert, layer[i].getNeuronen()[j].getAktivierungsfunktion());}
             }
 
         }
@@ -252,7 +245,7 @@ public class Netz {
     }
 
     public void start() {
-        long start = System.currentTimeMillis();
+  
 
         Double fehler_neu = 0.0;
         Double prev_fehler = 0.0;
@@ -274,14 +267,13 @@ public class Netz {
                 this.setGewichte(current_weights); // neuen Gewichte verwerfen und die alten gewichte wieder verwenden
                 this.fehler = prev_fehler; // alten fehler wieder herstellen
                 fehler_neu = prev_fehler_neu; // alten neuen fehler wiederherstellen
-
+            
             } else {
                 this.lernparameter = this.lernparameter * 1.1; // wenn der neue fehler kleiner als der alte ist, den
                                                                // lernparameter erhöhen und weiter machen :-)
             }
         }
-        long end = System.currentTimeMillis();
-        System.out.println("Finished in " + (end - start) + " ms");
+      
     }
 
 }

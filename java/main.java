@@ -31,6 +31,7 @@ public class main {
             netz.setSollvektor(sollVektor);
             netz.start();
             r.write(inputVektor, sollVektor, netz.getGewichte(),"gewichte",list.indexOf(s),".csv");
+            netz.print();
       }
     
 

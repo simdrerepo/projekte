@@ -3,6 +3,7 @@ public class Neuron {
         private Double input ;
         private Double output;
         private Double deltawert;
+        private Funktion aktivierungsFunktion;
         
        
         public Neuron(Double wert){
@@ -11,14 +12,20 @@ public class Neuron {
             this.output=wert;
              
         }
-        public Neuron(Double wert,Funktion aktivierungsFunktion){
+        public Neuron(Double wert, Funktion aktivierungsFunktion){
+            this.aktivierungsFunktion=aktivierungsFunktion;
             this.input=wert;
             this.input=wert;
         }
         public Neuron(){ 
         }
 
-     
+    public void setAktivierungsfunktion(Funktion funktion){
+        this.aktivierungsFunktion=funktion;
+    }
+    public Funktion getAktivierungsfunktion(){
+        return this.aktivierungsFunktion;
+    }
        
     public Double getInput(){
         return this.input;
@@ -41,9 +48,7 @@ public class Neuron {
     public void setInput(Double d){
         this.input=d;
     }
-    public void setWert(Double d){
-            this.input = d;
-    }
+ 
 
 
 
