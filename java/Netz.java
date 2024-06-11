@@ -197,7 +197,7 @@ public class Netz {
         for (int i = 0, n = layer[this.layer.length - 1].getNeuronen().length; i < n; i++) {
             Neuron neuron = layer[this.layer.length - 1].getNeuronen()[i];
             neuron.setDeltawert(
-                    ableitungsFunktion.execute(neuron.getOutput()) * (this.sollvektor[i] - neuron.getOutput()));
+                    ableitungsFunktion.execute(neuron.getInput()) * (this.sollvektor[i] - neuron.getOutput()));
         }
         // Deltawerte für die Hiddenschicht berechnen
         for (int i = layer.length - 2; i > 0; i--) {
@@ -209,7 +209,7 @@ public class Netz {
                     Neuron neuron2 = layer[i + 1].getNeuronen()[k];
                     deltawert += neuron2.getDeltawert() * gewichte[i][k][j];
                 }
-                neuron.setDeltawert(ableitungsFunktion.execute(neuron.getOutput()) * deltawert);
+                neuron.setDeltawert(ableitungsFunktion.execute(neuron.getInput()) * deltawert);
             }
         }
     }
