@@ -1,41 +1,28 @@
+
+import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Netz {
 
     private Layer[] layer;
-    private Double bias;
+    private Double bias = 1.0;
     private Double fehler = Double.MAX_VALUE;
     private Double[][][] gewichte;
-    private Funktion fehlerFunktion;
-    private Funktion ableitungsFunktion;
-    private Double lernparameter; // Eta
-    private Double[] sollvektor;
-    private int[] netzaufbau;
+    private Funktion fehlerFunktion = new Quadratischerfehler();
+    private Funktion ableitungsFunktion = new Sigmoid_Ableitung();
 
-    public Netz(int groesse) {
-        // Legt ein Netz mit der Größe n an
-        this.layer = new Layer[groesse];
+
+
+    private Double lernparameter = 0.00001; // Eta
+    private Double[] Outputvektor;
+    
+
+    public Netz() {
+   
+        this.layer = new Layer[2];
     }
+  
 
-    public Netz(int[] netzaufbau, Double[] inputVektor, Double[] sollVektor,
-            Funktion aktivierungsFunktion, Funktion fehlerFunktion, Funktion ableitungsFunktion, Double bias,
-            Double lernparameter) {
-
-        this.layer = new Layer[netzaufbau.length]; // Anzahl der Layer bestimmen
-        this.ableitungsFunktion = ableitungsFunktion;
-        this.fehlerFunktion = fehlerFunktion;
-        this.bias = bias;
-        this.netzaufbau = netzaufbau;
-        this.lernparameter = lernparameter;
-        this.sollvektor = sollVektor;
-        this.gewichte = this.initializeWeights(-0.04, 0.04); // Gewichte setzen
-        addLayer(netzaufbau[0], inputVektor, aktivierungsFunktion); // Input-Layer initialisieren
-        for (int i = 1, n = netzaufbau.length; i < n; i++) {
-            // restliche Layer initialisieren
-            addLayer(netzaufbau[i], aktivierungsFunktion);
-        }
-
-    }
 
     public Double[][][] initializeWeights(Double min, Double max) {
         Double[][][] weights = initialize3dArray();
@@ -51,54 +38,66 @@ public class Netz {
     }
 
     private Double[][][] initialize3dArray() {
-        Double[][][] weights = new Double[this.netzaufbau.length - 1][][];
+        Double[][][] weights = new Double[this.layer.length - 1][][];
         for (int i = 0, n = weights.length; i < n; i++) {
-            weights[i] = new Double[this.netzaufbau[i + 1]][this.netzaufbau[i] + 1];
+            weights[i] = new Double[this.layer[i + 1].getNeuronen().length][this.layer[i].getNeuronen().length + 1];
         }
         return weights;
     }
 
-    public void resetInputvektor(Double[] inputVektor) {
-        for (int i = 0, n = this.layer[0].getNeuronen().length; i < n; i++) {
-            layer[0].getNeuronen()[i].setInput(inputVektor[i]);
-            layer[0].getNeuronen()[i].setOutput(inputVektor[i]);
+    private void extendArray(){
+        Layer[] l = new Layer[this.layer.length+1];
+        
+        for(int i=0;i<this.layer.length;i++){
+            l[i] = this.layer[i];
         }
+        this.layer = l;
     }
+
+    
+
+    public void setInputvektor(Double[] inputVektor) {
+        Layer l = new Layer(inputVektor.length);
+        for (int i = 0, n = l.getNeuronen().length; i < n; i++) {
+            l.getNeuronen()[i].setInput(inputVektor[i]);
+            l.getNeuronen()[i].setOutput(inputVektor[i]);
+        }
+        this.layer[0] = l;
+    }
+
+
 
     public void setGewichte(Double[][][] gewichte) {
         // Setzt die Gewichte für jeden Layer
         this.gewichte = gewichte;
     }
 
-    private void addLayer(int LayerGroesse, Funktion aktivierungsFunktion) {
+    public void setSize(int size){
+        this.layer = new Layer[size];
+    }
+    public Layer[] getLayer(){
+        return this.layer;
+    }
+    
+
+    public void addHiddenLayer(int size) {
         /*
          * Fügt einen Layer hinzu
          * LayerGroesse bestimmt dabei die Anzahl der Neuronen in einem Layer
          */
+
+         this.extendArray();
        
-        for (int i = 0, n = this.layer.length; i < n; i++) {
+        for (int i = 1, n = this.layer.length; i < n; i++) {
             if (layer[i] == null) {
-                layer[i] = new Layer(LayerGroesse,aktivierungsFunktion);
+                layer[i] = new Layer(size);
                 return;
             }
         }
     }
 
-    private void addLayer(int LayerGroesse, Double[] inputVektor, Funktion aktivierungsFunktion) {
-        /*
-         * Diese Funktion wird verwendet um den ersten Layer (Input Layer) hinzuzufügen
-         * Da im Input Layer keine Berechnung stattfindet wird der Input Vektor mit
-         * übergeben,
-         * um die Neuronen mit den Entsprechende Werten zu versehen
-         */
-       
-        for (int i = 0, n = layer.length; i < n; i++) {
-            if (layer[i] == null) {
-                layer[i] = new Layer(LayerGroesse, inputVektor,aktivierungsFunktion);
-                return;
-            }
-        }
-    }
+
+
 
     public Double[] extractOutputVektor() {
         // Extrahiert den Outputvektor
@@ -163,20 +162,18 @@ public class Netz {
                 // System.out.println();
             }
             System.out.println("---------------------------------------------------------");
+            System.out.println();
         }
 
     }
 
-    public Double[][][] getGewichte() {
-        return this.gewichte;
-    }
 
-    public Double[] getSollvektor() {
-        return this.sollvektor;
-    }
 
-    public void setSollvektor(Double[] sollvektor) {
-        this.sollvektor = sollvektor;
+    public void setOutputvektor(Double[] Outputvektor) {
+       this.Outputvektor=Outputvektor;
+       Layer l = new Layer(Outputvektor.length);
+       this.layer[this.layer.length-1] = l;
+  
     }
 
     public void printDeltaWerte() {
@@ -190,14 +187,14 @@ public class Netz {
     }
 
     private void calcDeltawerte() {
-        if (this.sollvektor.length != this.layer[this.layer.length - 1].getNeuronen().length) {
+        if (this.Outputvektor.length != this.layer[this.layer.length - 1].getNeuronen().length) {
             return;
         }
         // Deltawerte für die Ouputschicht berechnen
         for (int i = 0, n = layer[this.layer.length - 1].getNeuronen().length; i < n; i++) {
             Neuron neuron = layer[this.layer.length - 1].getNeuronen()[i];
             neuron.setDeltawert(
-                    ableitungsFunktion.execute(neuron.getInput()) * (this.sollvektor[i] - neuron.getOutput()));
+                    ableitungsFunktion.execute(neuron.getInput()) * (this.Outputvektor[i] - neuron.getOutput()));
         }
         // Deltawerte für die Hiddenschicht berechnen
         for (int i = layer.length - 2; i > 0; i--) {
@@ -236,7 +233,7 @@ public class Netz {
     }
 
     private Double calcFehler() {
-        return this.fehlerFunktion.execute(extractOutputVektor(), this.sollvektor);
+        return this.fehlerFunktion.execute(extractOutputVektor(), this.Outputvektor);
     }
 
     private Double[][][] backPropagate() {
@@ -245,35 +242,105 @@ public class Netz {
     }
 
     public void start() {
-  
+        this.gewichte = this.initializeWeights(-0.04, 0.04);
 
         Double fehler_neu = 0.0;
-        Double prev_fehler = 0.0;
-        Double prev_fehler_neu = 0.0;
         this.feedForward();
         fehler_neu = this.calcFehler();
-
         while (Math.abs(this.fehler - fehler_neu) > 0.000000000001) {
             Double[][][] current_weights = this.gewichte;
             Double[][][] updated_weights = this.backPropagate();
             this.setGewichte(updated_weights);
             this.feedForward();
-            prev_fehler = this.fehler; // fehler merken
-            prev_fehler_neu = fehler_neu; // neuen fehler merken
+            Stack<Double> prev_fehler_stack = new Stack<>();
+            Stack<Double> new_fehler_stack = new Stack<>();
+            prev_fehler_stack.push(this.fehler);
+            new_fehler_stack.push(fehler_neu);
             this.fehler = fehler_neu;
             fehler_neu = this.calcFehler(); // neuen Fehler berechnen
             if (fehler_neu > this.fehler) { // wenn der neue Fehler größer ist als der alte
                 this.lernparameter = this.lernparameter / 2.0; // den Lernparameter halbieren
                 this.setGewichte(current_weights); // neuen Gewichte verwerfen und die alten gewichte wieder verwenden
-                this.fehler = prev_fehler; // alten fehler wieder herstellen
-                fehler_neu = prev_fehler_neu; // alten neuen fehler wiederherstellen
-            
+               this.fehler = prev_fehler_stack.pop();
+                fehler_neu = new_fehler_stack.pop();
             } else {
                 this.lernparameter = this.lernparameter * 1.1; // wenn der neue fehler kleiner als der alte ist, den
                                                                // lernparameter erhöhen und weiter machen :-)
             }
         }
       
+    }
+
+    public void setLayer(Layer[] layer) {
+        this.layer = layer;
+    }
+
+
+
+    public void setBias(Double bias) {
+        this.bias = bias;
+    }
+
+
+
+    public void setFehler(Double fehler) {
+        this.fehler = fehler;
+    }
+
+
+
+    public void setFehlerFunktion(Funktion fehlerFunktion) {
+        this.fehlerFunktion = fehlerFunktion;
+    }
+
+
+
+    public void setAbleitungsFunktion(Funktion ableitungsFunktion) {
+        this.ableitungsFunktion = ableitungsFunktion;
+    }
+
+
+
+    public void setLernparameter(Double lernparameter) {
+        this.lernparameter = lernparameter;
+    }
+
+
+
+    public Double getBias() {
+        return bias;
+    }
+
+
+
+    public Double getFehler() {
+        return fehler;
+    }
+
+
+
+    public Funktion getFehlerFunktion() {
+        return fehlerFunktion;
+    }
+
+
+
+    public Funktion getAbleitungsFunktion() {
+        return ableitungsFunktion;
+    }
+
+
+
+    public Double getLernparameter() {
+        return lernparameter;
+    }
+
+    public Double[][][] getGewichte() {
+        return this.gewichte;
+    }
+
+    public Double[] getOutputvektor() {
+        return this.Outputvektor;
     }
 
 }

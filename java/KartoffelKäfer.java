@@ -1,3 +1,6 @@
+import java.lang.Math;
+
+
 public class KartoffelKäfer {
     
 
@@ -8,13 +11,24 @@ public class KartoffelKäfer {
         this.matrix = new Double[size][size];
     }
 
-    private Double[][] createKäfer(){
+    private void createKäfer(){
         
-        
-        return null;
-        
+        for(int i=0;i<this.matrix.length;i++){
+            for (int j = 0; j < matrix[0].length; j++) {
+            this.matrix[i][j] =  (double) Math.round(Math.random());
+            }
+        }
     }
     
+    public Double[][] getMatrix(){
+        return this.matrix;
+    }
+    public static void main(String[] args) {
+        KartoffelKäfer kk = new KartoffelKäfer(5);
+        kk.createKäfer();
 
+        Double[][] bild = (Double[][]) kk.getMatrix();
+        Utils.printAsMatrix(bild," ");
+    }
 
 }

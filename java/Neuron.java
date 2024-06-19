@@ -3,7 +3,7 @@ public class Neuron {
         private Double input ;
         private Double output;
         private Double deltawert;
-        private Funktion aktivierungsFunktion;
+        private Funktion aktivierungsFunktion = new Sigmoid();
         
        
         public Neuron(Double wert){
@@ -12,11 +12,7 @@ public class Neuron {
             this.output=wert;
              
         }
-        public Neuron(Double wert, Funktion aktivierungsFunktion){
-            this.aktivierungsFunktion=aktivierungsFunktion;
-            this.input=wert;
-            this.input=wert;
-        }
+
         public Neuron(){ 
         }
 
