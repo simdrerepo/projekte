@@ -18,6 +18,10 @@ public class MyCSVReader {
         this.path = pathString;
     }
 
+    public MyCSVReader(){
+
+    }
+
     public List<String[]> read(String splitBy) {
 
         List<String[]> list = new ArrayList<>();
@@ -38,18 +42,53 @@ public class MyCSVReader {
         return list;
 
     }
+    public void write(String input,String pfadname){
+ 
 
-    public void write(Double[] inputVektor, Double[] sollVektor, Double[][][] gewichte, String pfad,int index,String format) {
-        String[] concat = Stream
-                .concat(Arrays.stream(convertToString(inputVektor)), Arrays.stream(convertToString(sollVektor)))
-                .toArray(String[]::new);
-        String str = convertToString(concat, ";");
+        try { 
+            BufferedWriter bw = new BufferedWriter(new FileWriter(pfadname));
+            
+                bw.write(input);
+                bw.write("\n");
+            
+
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+
+        }
+
+    }
+    public void write(List<String> input,String pfad){
+        try { 
+            BufferedWriter bw = new BufferedWriter(new FileWriter(pfad));
+                for(String s:input){
+                bw.write(s);
+                bw.write("\n");
+                }
+
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+
+        }
+    }
+
+    public void write(Double[] inputVektor, Double[] sollVektor, Double[][][] gewichte, String pfad,int index,String format,Double fehler) {
+       // String[] concat = Stream
+         //       .concat(Arrays.stream(convertToString(inputVektor)), Arrays.stream(convertToString(sollVektor)))
+           //     .toArray(String[]::new);
+        //String str = convertToString(concat, ";");
         List<String> data = new ArrayList<>();
-        data.add(str);
+        data.add(convertToString(convertToString(inputVektor),","));
+        data.add(",,");
+        data.add(convertToString(convertToString(sollVektor),","));
+        data.add(",,");
+        data.add(Double.toString(fehler));
 
         String pfadname = pfad+index+format;
         for (Double[][] d3 : gewichte) {
-            data.add(";;");
+            data.add(",,");
             for (Double[] d2 : d3) {
                 data.add(convertToString(convertToString(d2), ";"));
             }
@@ -88,6 +127,14 @@ public class MyCSVReader {
 
     public String[] convertToString(Double[] array) {
         return Arrays.stream(array).map(String::valueOf).toArray(String[]::new);
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
 }

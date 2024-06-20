@@ -1,5 +1,7 @@
 package projekseminar;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -12,14 +14,15 @@ public class Netz {
     private Layer[] layer;
     private Double bias = 1.0;
     private Double fehler = Double.MAX_VALUE;
+
+
+    private Double gesamtfehler;
     private Double[][][] gewichte;
     private Funktion fehlerFunktion = new Quadratischerfehler();
     private Funktion ableitungsFunktion = new Sigmoid_Ableitung();
-
-
-
+    private List<Double> fehlerverlauf;
     private Double lernparameter = 0.00001; // Eta
-    private Double[] Outputvektor;
+    private Double[] sollVektor;
     
 
     public Netz() {
@@ -175,7 +178,7 @@ public class Netz {
 
 
     public void setOutputvektor(Double[] Outputvektor) {
-       this.Outputvektor=Outputvektor;
+       this.sollVektor=Outputvektor;
        Layer l = new Layer(Outputvektor.length);
        this.layer[this.layer.length-1] = l;
   
@@ -192,13 +195,13 @@ public class Netz {
     }
 
     private void calcDeltawerte() {
-        if (this.Outputvektor.length != this.layer[this.layer.length - 1].getNeuronen().length) {
+        if (this.sollVektor.length != this.layer[this.layer.length - 1].getNeuronen().length) {
             return;
         }
         // Deltawerte für die Ouputschicht berechnen
         for (int i = 0, n = layer[this.layer.length - 1].getNeuronen().length; i < n; i++) {
             Neuron neuron = layer[this.layer.length - 1].getNeuronen()[i];
-            neuron.setDeltawert(ableitungsFunktion.execute(neuron.getInput()) * (this.Outputvektor[i] - neuron.getOutput()));
+            neuron.setDeltawert(ableitungsFunktion.execute(neuron.getInput()) * (this.sollVektor[i] - neuron.getOutput()));
         }
         // Deltawerte für die Hiddenschicht berechnen
         for (int i = layer.length - 2; i > 0; i--) {
@@ -235,7 +238,7 @@ public class Netz {
     }
 
     private Double calcFehler() {
-        return this.fehlerFunktion.execute(extractOutputVektor(), this.Outputvektor);
+        return this.fehlerFunktion.execute(extractOutputVektor(), this.sollVektor);
     }
 
     private Double[][][] backPropagate() {
@@ -245,32 +248,51 @@ public class Netz {
 
     public void start() {
         this.gewichte = this.initializeWeights(-0.04, 0.04);
+        this.fehler = Double.MAX_VALUE;
+        this.fehlerverlauf = new ArrayList<>();
+        this.lernparameter = 0.00001;
+        Stack<Double> prev_fehler_stack = new Stack<>();
+        Stack<Double> new_fehler_stack = new Stack<>();
+        
 
-        Double fehler_neu = 0.0;
+        Double neuer_fehler = this.calcFehler();
         this.feedForward();
-        fehler_neu = this.calcFehler();
-        while (Math.abs(this.fehler - fehler_neu) > 0.000000000001) {
-            Double[][][] current_weights = this.gewichte;
-            Double[][][] updated_weights = this.backPropagate();
+        
+        
+        while (Math.abs(this.fehler - neuer_fehler) > 0.000000000001) {
+           
+           
+            Double[][][] current_weights = this.gewichte; // aktuelle Gewichte merken
+            Double[][][] updated_weights = this.backPropagate(); // neue Gewichte berechnen
             this.setGewichte(updated_weights);
             this.feedForward();
-            Stack<Double> prev_fehler_stack = new Stack<>();
-            Stack<Double> new_fehler_stack = new Stack<>();
+
+            this.fehler=neuer_fehler;
+            neuer_fehler = this.calcFehler();
+
+           
             prev_fehler_stack.push(this.fehler);
-            new_fehler_stack.push(fehler_neu);
-            this.fehler = fehler_neu;
-            fehler_neu = this.calcFehler(); // neuen Fehler berechnen
-            if (fehler_neu > this.fehler) { // wenn der neue Fehler größer ist als der alte
+            new_fehler_stack.push(neuer_fehler);
+            this.fehler = neuer_fehler;
+            neuer_fehler = this.calcFehler();
+           
+            if (neuer_fehler > this.fehler) { // wenn der neue Fehler größer ist als der alte
                 this.lernparameter = this.lernparameter / 2.0; // den Lernparameter halbieren
                 this.setGewichte(current_weights); // neuen Gewichte verwerfen und die alten gewichte wieder verwenden
-               this.fehler = prev_fehler_stack.pop();
-                fehler_neu = new_fehler_stack.pop();
+                fehlerverlauf.add(neuer_fehler);
+           
             } else {
                 this.lernparameter = this.lernparameter * 1.1; // wenn der neue fehler kleiner als der alte ist, den
                                                                // lernparameter erhöhen und weiter machen :-)
+                                                               this.fehler = prev_fehler_stack.pop();
+                                                               neuer_fehler= new_fehler_stack.pop();
+                fehlerverlauf.add(neuer_fehler);
             }
-        }
-      
+
+              }
+        
+     Double sum = fehlerverlauf.stream().reduce(0.0,  (a,b)-> a+b);
+     this.gesamtfehler=sum;
     }
 
     public void setLayer(Layer[] layer) {
@@ -319,19 +341,13 @@ public class Netz {
         return fehler;
     }
 
-
-
     public Funktion getFehlerFunktion() {
         return fehlerFunktion;
     }
 
-
-
     public Funktion getAbleitungsFunktion() {
         return ableitungsFunktion;
     }
-
-
 
     public Double getLernparameter() {
         return lernparameter;
@@ -341,8 +357,22 @@ public class Netz {
         return this.gewichte;
     }
 
-    public Double[] getOutputvektor() {
-        return this.Outputvektor;
+    public Double[] getSollvektor() {
+        return this.sollVektor;
+    }
+    public void setGesamtfehler(Double gesamtfehler) {
+        this.gesamtfehler = gesamtfehler;
     }
 
+    public void setFehlerverlauf(List<Double> fehlerverlauf) {
+        this.fehlerverlauf = fehlerverlauf;
+    }
+
+    public Double getGesamtfehler() {
+        return gesamtfehler;
+    }
+
+    public List<Double> getFehlerverlauf() {
+        return fehlerverlauf;
+    }
 }

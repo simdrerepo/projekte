@@ -24,17 +24,25 @@ public class Utils<T,E> {
         }
     }
 
-    public static <T> T[] TwoDimToOneDim(T[][] input){
+  
+    public static Double[] TwoDimToOneDim(Double[][] input){
 
-        List<T> list = new ArrayList<>();
-        for(T[] ta :input){
-            for(T t : ta){
-                list.add(t);
+        List<Double> list = new ArrayList<>();
+
+        for(int i=0;i<input.length;i++){
+            for(int j=0;j<input[0].length;j++){
+                list.add(input[i][j]);
             }
         }
-        @SuppressWarnings("unchecked")
-        T[] ret = (T[]) new Object[list.size()];
-        return list.toArray(ret);
+    
+       Double[] ret = new Double[input.length*input[0].length];
+       for(int i=0;i<list.size();i++){
+        ret[i] = list.get(i);
+       }
+
+      
+       
+        return ret;
 
     }
     
