@@ -1,4 +1,7 @@
 package projekseminar.funktionen;
+
+import projekseminar.Funktion;
+
 public class Identität implements Funktion {
 
     @Override

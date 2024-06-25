@@ -1,6 +1,8 @@
 package projekseminar;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 
 public class main {
 
@@ -8,71 +10,125 @@ public class main {
 
     public static void main(String[] args) {
 
-        String path ="java/projekseminar/data/käferdata.csv";
-        Double[] inputVektor;
-        Double[] outputVektor;
+        
+        List<kNNData> netzoutput = new ArrayList<>();
         int[] einsen = {1,2,3,4,5,6,7,8,9};
-        Double netzfehler = 0.0;
-        MyCSVReader r = new MyCSVReader(path);
-        List<String[]> npt = r.read(",");
-        r.setPath("java/projekseminar/data/käferdata_output.csv");
-        List<String[]> tpt = r.read(",");
-        //main.generateData(einsen, 10, 25);  
+        List<Double> fehler = new ArrayList<>();
+      
+     
         Netz netz = new Netz();
         netz.addHiddenLayer(10);
         
-      
-       
-       
-      
+
+        //List<Data> trainingsdaten = main.generateData(einsen, 10, 25);
+       // List<Data> testdaten = main.generateData(einsen, 10, 25);
+       // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\training\\trainingsdaten", trainingsdaten);
+       // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\test\\testdaten", testdaten); 
+         List<Data> trainingsdaten = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\training\\trainingsdaten");
         
-      for(String[] s : npt){
-            Double[] input = r.convertToDouble(s);
-            Double[] output = r.convertToDouble(tpt.get(npt.indexOf(s)));
+      List<Data> testdaten = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\test\\testdaten");
 
+        
+      // List<kNNData> output = main.calc(trainingsdaten,netz);
+      // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\netzoutput", output);
+       List<kNNData> output = Utils.readFromDisk( "java\\projekseminar\\serialized_objects\\netzoutput");
+       Funktion fehlerFunktion = new Quadratischerfehler();
+       System.out.println(output.size());
+       Double[] opv = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+       List<Double> fehler_testdaten = new ArrayList<>();
+       List<Double[]> fehler_trainingsdaten = new ArrayList<>();
+       //List<Double[]> ergebnisse = new ArrayList<>();
+        for(int i=0;i<output.size();i++){
+          netz.setGewichte(output.get(i).getGewichte());
+          netz.setInputvektor(testdaten.get(i).getInputvektor());
+          netz.setSollvektor(opv);
+          netz.feedForward();
+          fehler_trainingsdaten.add(netz.extractOutputVektor());
+         System.out.println(Arrays.toString(output.get(i).getErgebnisvektor()));
 
-            netz.setInputvektor(input);
-            netz.setOutputvektor(output);
-           netz.start();
-           netz.print();
-            r.write(input, output, netz.getGewichte(),"java/projekseminar/ergebnisse/käfer/gewichte",npt.indexOf(s),".csv",netz.getGesamtfehler());
-            
-            
-            
-            netzfehler+=netz.getGesamtfehler();
-            
+        }
+        System.err.println("####################################################################");
+        for(Double[] da : fehler_trainingsdaten){
+          System.out.println(Arrays.toString(da));
+        }
+
+       
+       
+  
+
+      
+       // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\netzoutput", netzoutput);
+       //netzoutput = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\netzoutput");
+       
+
+     /*   for(MyDataStructure mds :netzoutput){
+
+        netz.setGewichte(mds.getGewichte());
+        netz.setInputvektor(input_data_validation.get(netzoutput.indexOf(mds)));
+        
+        netz.feedForward();
+        
+       System.out.println(Arrays.toString(netz.extractOutputVektor()));
+       
+
+       } */
+        
+   
+       
+    }
+    public static Double calcNetzFehler(List<kNNData> daten){
+
+      List<Double> fehler = new ArrayList<>();
+      for(kNNData d :daten){
+        fehler.add(d.getFehler());
       }
-      System.out.println(netzfehler);
-     
+
+      return fehler.stream().reduce(0.0,(a,b)->a+b)/fehler.size();
+
     }
 
-    public static void generateData(int[] einsen, int samplesize, int matrixbreite){
-      MyCSVReader r = new MyCSVReader();
-      List<String> batches = new ArrayList<>();
-      List<String> output = new ArrayList<>();
+    public static List<kNNData> calc(List<Data> daten,Netz netz){
+  
+      List<kNNData> netzoutput = new ArrayList<>();
+      for(Data d : daten){
+
+          netz.setInputvektor(d.getInputvektor());
+          netz.setSollvektor(d.getOutputvektor());
+          netz.start();
+         
+        
+          kNNData mds = new kNNData();
+          mds.setGewichte(netz.getGewichte());
+          mds.setInputvektor(d.getInputvektor());
+          mds.setOutputvektor(d.getOutputvektor());
+          mds.setFehlerverlauf(netz.getFehlerverlauf());
+          mds.setErgebnisvektor(netz.extractOutputVektor());
+          mds.setFehler(netz.getGesamtfehler());
+          
+          netzoutput.add(mds); 
+     }
+
+     return netzoutput;
+
+  }
+
+    public static List<Data> generateData(int[] einsen, int samplesize, int matrixbreite){
+      List<Data> daten = new ArrayList<>();
       KartoffelKäfer kk;
-       
       for(int i=0;i<einsen.length;i++){
         for(int j=0;j<samplesize;j++){
           kk = new KartoffelKäfer(matrixbreite);
           kk.createKäferMatrix(einsen[i]);
           Double[] ddd =  Utils.TwoDimToOneDim(kk.getMatrix());
-          batches.add(r.convertToString(r.convertToString(ddd),",")); 
-         
-          
           Double[] out = main.createOutput(einsen.length+1, einsen[i]);
-          output.add(r.convertToString(r.convertToString(out),","));
-
+          Data d = new Data();
+          d.setInputvektor(ddd);
+          d.setOutputvektor(out);
+          daten.add(d);
         }
-
+       
       }
-      
-     for(int i=0;i<batches.size();i++){
-      r.write(batches,"C:\\Users\\simon\\projekte\\java\\projekseminar\\data\\käferdata.csv");
-     }
-     for(int i=0;i<output.size();i++){
-      r.write(output,"C:\\Users\\simon\\projekte\\java\\projekseminar\\data\\käferdata_output.csv");
-     }
+     return daten;
     }
 
     private static Double[] createOutput(int size, int index){

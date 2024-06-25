@@ -1,6 +1,5 @@
 package projekseminar;
 
-import projekseminar.funktionen.Funktion;
 import projekseminar.funktionen.Sigmoid;
 
 public class Neuron { 

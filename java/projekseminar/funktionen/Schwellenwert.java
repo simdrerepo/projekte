@@ -1,4 +1,7 @@
 package projekseminar.funktionen;
+
+import projekseminar.Funktion;
+
 public class Schwellenwert implements Funktion{
 
     private Double schwellenwert = 1.5;

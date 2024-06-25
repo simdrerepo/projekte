@@ -1,9 +1,42 @@
 package projekseminar;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Utils<T,E> {
 
+
+        public static <T> void saveToDisk(String path, T input){
+
+            try{
+                FileOutputStream fileOutputStream = new FileOutputStream(path);
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+             
+                objectOutputStream.writeObject(input);
+    
+                objectOutputStream.close();
+                }catch(IOException e){
+                  e.printStackTrace();
+                }
+
+        }
+        public static<T> T readFromDisk(String path){
+            try {
+                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(path));
+                @SuppressWarnings("unchecked")
+                T restored = (T) objectInputStream.readObject();
+                objectInputStream.close();
+                return restored;
+                
+                }catch (Exception e){
+                    e.printStackTrace();
+                    }
+                    return null;
+        }
         @SuppressWarnings("unchecked")
         public static<T,E> T[] convertTo(E[] array) {
         T[] ar = (T[]) new Object[array.length];

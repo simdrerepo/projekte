@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
-import projekseminar.funktionen.Funktion;
-import projekseminar.funktionen.Quadratischerfehler;
 import projekseminar.funktionen.Sigmoid_Ableitung;
 
 public class Netz {
@@ -14,8 +12,6 @@ public class Netz {
     private Layer[] layer;
     private Double bias = 1.0;
     private Double fehler = Double.MAX_VALUE;
-
-
     private Double gesamtfehler;
     private Double[][][] gewichte;
     private Funktion fehlerFunktion = new Quadratischerfehler();
@@ -118,7 +114,7 @@ public class Netz {
         return outputVektor;
     }
 
-    private void feedForward() {
+    public void feedForward() {
         /*
          * Startet die Berechnung des Neuronalen Netzes
          * 
@@ -177,9 +173,9 @@ public class Netz {
 
 
 
-    public void setOutputvektor(Double[] Outputvektor) {
-       this.sollVektor=Outputvektor;
-       Layer l = new Layer(Outputvektor.length);
+    public void setSollvektor(Double[] Sollvektor) {
+       this.sollVektor=Sollvektor;
+       Layer l = new Layer(Sollvektor.length);
        this.layer[this.layer.length-1] = l;
   
     }
@@ -237,14 +233,16 @@ public class Netz {
         return gewichte_neu;
     }
 
-    private Double calcFehler() {
-        return this.fehlerFunktion.execute(extractOutputVektor(), this.sollVektor);
+    public Double calcFehler() {
+        return this.fehlerFunktion.execute(this.getSollVektor(),extractOutputVektor());
     }
 
     private Double[][][] backPropagate() {
         this.calcDeltawerte();
         return this.updateGewichte();
     }
+
+
 
     public void start() {
         this.gewichte = this.initializeWeights(-0.04, 0.04);
@@ -292,7 +290,7 @@ public class Netz {
               }
         
      Double sum = fehlerverlauf.stream().reduce(0.0,  (a,b)-> a+b);
-     this.gesamtfehler=sum;
+     this.gesamtfehler=sum/this.fehlerverlauf.size();
     }
 
     public void setLayer(Layer[] layer) {
@@ -366,6 +364,7 @@ public class Netz {
 
     public void setFehlerverlauf(List<Double> fehlerverlauf) {
         this.fehlerverlauf = fehlerverlauf;
+        
     }
 
     public Double getGesamtfehler() {
@@ -375,4 +374,13 @@ public class Netz {
     public List<Double> getFehlerverlauf() {
         return fehlerverlauf;
     }
+
+
+
+    public Double[] getSollVektor() {
+        return sollVektor;
+    }
+
+
+
 }

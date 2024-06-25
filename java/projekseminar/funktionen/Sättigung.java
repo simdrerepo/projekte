@@ -1,4 +1,7 @@
 package projekseminar.funktionen;
+
+import projekseminar.Funktion;
+
 public class Sättigung  implements Funktion{
 
     @Override

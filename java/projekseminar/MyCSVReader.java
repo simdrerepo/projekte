@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
+
 
 public class MyCSVReader {
 
@@ -22,9 +22,9 @@ public class MyCSVReader {
 
     }
 
-    public List<String[]> read(String splitBy) {
+    public List<Double[]> read(String splitBy) {
 
-        List<String[]> list = new ArrayList<>();
+        List<Double[]> list = new ArrayList<>();
         String line = "";
 
         try {
@@ -33,7 +33,7 @@ public class MyCSVReader {
             while ((line = br.readLine()) != null) {
                 String[] array = line.split(splitBy);
             
-                list.add(array);
+                list.add(convertToDouble(array));
             }
             br.close();
         } catch (IOException e) {
