@@ -9,6 +9,45 @@ import java.util.List;
 
 public class Utils<T,E> {
 
+    public static Boolean isVorhersageTrue(Double[] istVektor, Double[] sollVektor){
+
+        return findHighestValueIndex(istVektor)==findHighestValueIndex(sollVektor);
+
+    }
+
+    public static int findHighestValueIndex(Double[] vektor){
+
+        // returns index of highest element in an array
+
+        Double highest = vektor[0];
+        int index = 0;
+
+        for(int i=0;i<vektor.length;i++){
+            if(vektor[i] > highest){
+                highest = vektor[i];
+                index = i;
+            }
+        }
+
+        
+        return index;
+    }
+
+    public static void print(Double[] istVektor,Double[] sollVektor) {
+    
+            System.out.println("---------------------------------------------------------");
+            System.out.printf("| %-25s | %-25s |%n", "Ist", "Soll");
+            for (int i = 0, m = istVektor.length; i < m; i++) {
+
+                System.out.printf("| %-25s | %-25s |%n", istVektor[i],sollVektor[i]);
+
+            }
+            System.out.println("---------------------------------------------------------");
+            System.out.println();
+        
+
+    }
+
 
         public static <T> void saveToDisk(String path, T input){
 

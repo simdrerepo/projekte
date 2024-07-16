@@ -8,6 +8,7 @@ public class Neuron {
         private Double output;
         private Double deltawert;
         private Funktion aktivierungsFunktion = new Sigmoid();
+        public Double[] gewichte;
         
        
         public Neuron(Double wert){

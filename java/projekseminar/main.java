@@ -14,66 +14,122 @@ public class main {
         List<kNNData> netzoutput = new ArrayList<>();
         int[] einsen = {1,2,3,4,5,6,7,8,9};
         List<Double> fehler = new ArrayList<>();
+/*         Double[][][] gew = {
+          {
+            {-0.081,0.06,-0.01,0.08},
+            {0.08,0.02,0.003,-0.09},
+            {-0.04,-0.003,-0.09,-0.05}
+          },
+          {
+            {-0.008,0.06,0.04,-0.08
+            },
+            {0.01,-0.06,0.06,0.06
+            },
+            {0.01,-0.027,0.08,0.09
+            },
+            {0.00029,-0.01,0.08,-0.001
+            }
+          }
+         
+          
+           }; */
+
+           Double[][][] gewichte = {
+            {
+              {0.15,0.20,0.35},
+              {0.25,0.30,0.35}
+            },
+            {
+              {0.4,0.45,0.6},
+              {0.5,0.55,0.6}
+            }
+           };
+        
+        MyCSVReader r = new MyCSVReader();
+        r.setPath("java\\projekseminar\\data\\training\\ampeldata.csv");
+        List<Double[]> ampel_input = r.read(";");
       
-     
-        Netz netz = new Netz();
-        netz.addHiddenLayer(10);
-        
+        System.out.println();
+          r.setPath("java\\projekseminar\\data\\training\\ampeldata_output.csv");
+        List<Double[]> ampel_output = r.read(";");
+       
+        Double[] input = {3.0,1.0};
+        Double[] output = {1.0,0.0};
+      
+        Netz netz = new Netz(3);
+        netz.addLayer(625);
+        netz.addLayer(10);
+        netz.addLayer(10);
+  
+ 
 
-        //List<Data> trainingsdaten = main.generateData(einsen, 10, 25);
-       // List<Data> testdaten = main.generateData(einsen, 10, 25);
-       // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\training\\trainingsdaten", trainingsdaten);
-       // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\test\\testdaten", testdaten); 
-         List<Data> trainingsdaten = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\training\\trainingsdaten");
         
-      List<Data> testdaten = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\test\\testdaten");
-
+        List<Data> trainingsdaten = main.generateData(einsen, 10, 25);
+       List<Data> testdaten = main.generateData(einsen, 10, 25);
+       /* 
+       Utils.saveToDisk("java\\projekseminar\\serialized_objects\\training\\trainingsdaten", trainingsdaten);
+       Utils.saveToDisk("java\\projekseminar\\serialized_objects\\test\\testdaten", testdaten);  */
+       trainingsdaten = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\training\\trainingsdaten");
         
-      // List<kNNData> output = main.calc(trainingsdaten,netz);
-      // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\netzoutput", output);
-       List<kNNData> output = Utils.readFromDisk( "java\\projekseminar\\serialized_objects\\netzoutput");
+       testdaten = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\test\\testdaten");
+ 
+      
+       List<kNNData> netz_output = main.calc(trainingsdaten,netz);
+       Utils.saveToDisk("java\\projekseminar\\serialized_objects\\netzoutput", netz_output);
+        netz_output = Utils.readFromDisk( "java\\projekseminar\\serialized_objects\\netzoutput");
        Funktion fehlerFunktion = new Quadratischerfehler();
-       System.out.println(output.size());
-       Double[] opv = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    
+       Double[] opv = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ,0.0, 0.0, 0.0};
        List<Double> fehler_testdaten = new ArrayList<>();
-       List<Double[]> fehler_trainingsdaten = new ArrayList<>();
+       List<Double> fehler_trainingsdaten = new ArrayList<>();
        //List<Double[]> ergebnisse = new ArrayList<>();
-        for(int i=0;i<output.size();i++){
-          netz.setGewichte(output.get(i).getGewichte());
+
+    
+      int korrektevorhersagen = 0;
+        for(int i=0;i<netz_output.size();i++){
+          netz.setGewichte(netz_output.get(i).getGewichte());
           netz.setInputvektor(testdaten.get(i).getInputvektor());
           netz.setSollvektor(opv);
           netz.feedForward();
-          fehler_trainingsdaten.add(netz.extractOutputVektor());
-         System.out.println(Arrays.toString(output.get(i).getErgebnisvektor()));
-
+     
+        
+        
+         fehler_testdaten.add(fehlerFunktion.execute(netz.extractOutputVektor(), testdaten.get(i).getOutputvektor()));
+         Utils.print(netz.extractOutputVektor(),testdaten.get(i).getOutputvektor());
+         if(Utils.isVorhersageTrue(netz.extractOutputVektor(), testdaten.get(i).getOutputvektor())==true){
+          korrektevorhersagen++;
+         }
         }
-        System.err.println("####################################################################");
-        for(Double[] da : fehler_trainingsdaten){
-          System.out.println(Arrays.toString(da));
-        }
-
        
        
-  
-
-      
+      Double d =  fehler_testdaten.stream().reduce(0.0,(a,b)->a+b);
+     
+    
+      System.out.println(d); 
+      System.out.println(korrektevorhersagen);
        // Utils.saveToDisk("java\\projekseminar\\serialized_objects\\netzoutput", netzoutput);
        //netzoutput = Utils.readFromDisk("java\\projekseminar\\serialized_objects\\netzoutput");
-       
+       List<List<Double>> liste_aller_fehlerverläufe = new ArrayList<>();
+       List<Double> fehlerverlauf_gesamtes_netz = new ArrayList<>();
+       Double trainings_fehler = 0.0;
+       for(kNNData de :netz_output){
+       liste_aller_fehlerverläufe.add(de.getFehlerverlauf());
+        trainings_fehler += de.getFehlerverlauf().getLast();
+       }
 
-     /*   for(MyDataStructure mds :netzoutput){
-
-        netz.setGewichte(mds.getGewichte());
-        netz.setInputvektor(input_data_validation.get(netzoutput.indexOf(mds)));
+       for(int i =0;i<liste_aller_fehlerverläufe.get(0).size();i++){
+        Double f = 0.0;
+        for(int j=0;j<liste_aller_fehlerverläufe.size();j++){
+          f = f+liste_aller_fehlerverläufe.get(j).get(i);
+          
+          
+        }
+        fehlerverlauf_gesamtes_netz.add((f/90));
+    
+       }
         
-        netz.feedForward();
-        
-       System.out.println(Arrays.toString(netz.extractOutputVektor()));
-       
-
-       } */
-        
-   
+       System.out.println(trainings_fehler);
+       System.out.println(fehlerverlauf_gesamtes_netz);
        
     }
     public static Double calcNetzFehler(List<kNNData> daten){
@@ -95,6 +151,8 @@ public class main {
           netz.setInputvektor(d.getInputvektor());
           netz.setSollvektor(d.getOutputvektor());
           netz.start();
+
+         
          
         
           kNNData mds = new kNNData();
@@ -120,7 +178,7 @@ public class main {
           kk = new KartoffelKäfer(matrixbreite);
           kk.createKäferMatrix(einsen[i]);
           Double[] ddd =  Utils.TwoDimToOneDim(kk.getMatrix());
-          Double[] out = main.createOutput(einsen.length+1, einsen[i]);
+          Double[] out = main.createOutput(einsen, einsen[i]);
           Data d = new Data();
           d.setInputvektor(ddd);
           d.setOutputvektor(out);
@@ -131,12 +189,16 @@ public class main {
      return daten;
     }
 
-    private static Double[] createOutput(int size, int index){
-      Double[] ret = new Double[size];
-    
-      for(int i=0;i<size;i++){
-        ret[i] = 0.0;
+    private static Double[] createOutput(int[] array, int index){ 
+     
+      int max = array[0];
+
+      for(int i=0;i<array.length;i++){
+        if(array[i]> max){
+          max = array[i];
+        }
       }
+      Double[] ret = new Double[max+1];
       ret[index] = 1.0;
       return ret;
     }

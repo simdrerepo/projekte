@@ -1,6 +1,7 @@
 package projekseminar;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,11 +22,11 @@ public class Netz {
     private Double[] sollVektor;
     
 
-    public Netz() {
+    public Netz(int size) {
    
-        this.layer = new Layer[2];
+        this.layer = new Layer[size];
     }
-  
+
 
 
     public Double[][][] initializeWeights(Double min, Double max) {
@@ -49,25 +50,17 @@ public class Netz {
         return weights;
     }
 
-    private void extendArray(){
-        Layer[] l = new Layer[this.layer.length+1];
-        
-        for(int i=0;i<this.layer.length;i++){
-            l[i] = this.layer[i];
-        }
-        this.layer = l;
-    }
 
     
 
     public void setInputvektor(Double[] inputVektor) {
-        Layer l = new Layer(inputVektor.length);
-        for (int i = 0, n = l.getNeuronen().length; i < n; i++) {
-            l.getNeuronen()[i].setInput(inputVektor[i]);
-            l.getNeuronen()[i].setOutput(inputVektor[i]);
+        for (int i = 0, n = this.layer[0].getNeuronen().length; i < n; i++) {
+            layer[0].getNeuronen()[i].setInput(inputVektor[i]);
+            layer[0].getNeuronen()[i].setOutput(inputVektor[i]);
+
         }
-        this.layer[0] = l;
     }
+
 
 
 
@@ -84,15 +77,15 @@ public class Netz {
     }
     
 
-    public void addHiddenLayer(int size) {
+    public void addLayer(int size) {
         /*
          * Fügt einen Layer hinzu
          * LayerGroesse bestimmt dabei die Anzahl der Neuronen in einem Layer
          */
 
-         this.extendArray();
+        
        
-        for (int i = 1, n = this.layer.length; i < n; i++) {
+        for (int i = 0, n = this.layer.length; i < n; i++) {
             if (layer[i] == null) {
                 layer[i] = new Layer(size);
                 return;
@@ -144,7 +137,7 @@ public class Netz {
                                                                                                        // Gewicht
                                                                                                        // addieren
                 layer[i].getNeuronen()[j].setInput(wert);
-                if (i == layer.length - 1) {layer[i].getNeuronen()[j].setOutput(wert);
+                if (i == layer.length - 1) {layer[i].getNeuronen()[j].setOutput(wert); // layer[i].getNeuronen()[j].getAktivierungsfunktion()
                 } else {layer[i].getNeuronen()[j].setOutput(wert, layer[i].getNeuronen()[j].getAktivierungsfunktion());}
             }
 
@@ -175,10 +168,9 @@ public class Netz {
 
     public void setSollvektor(Double[] Sollvektor) {
        this.sollVektor=Sollvektor;
-       Layer l = new Layer(Sollvektor.length);
-       this.layer[this.layer.length-1] = l;
   
     }
+
 
     public void printDeltaWerte() {
         for (int i = 1, n = layer.length; i < n; i++) {
@@ -189,6 +181,9 @@ public class Netz {
         }
 
     }
+
+
+
 
     private void calcDeltawerte() {
         if (this.sollVektor.length != this.layer[this.layer.length - 1].getNeuronen().length) {
@@ -224,20 +219,20 @@ public class Netz {
                 Neuron post_neuron = layer[i].getNeuronen()[j];
                 Double deltawert = layer[i].getNeuronen()[j].getDeltawert();
                 for (int l = 0, k = layer[i - 1].getNeuronen().length; l < k; l++) {
-                    wert = (this.lernparameter * (deltawert * post_neuron.getOutput())) + this.gewichte[i - 1][j][l];
-                    gewichte_neu[i - 1][j][l] = wert;
+                    gewichte_neu[i-1][j][l] = (this.lernparameter * (deltawert * post_neuron.getOutput())) + this.gewichte[i - 1][j][l];
+                    //gewichte_neu[i - 1][j][l] = wert;
                 }
-                gewichte_neu[i - 1][j][this.gewichte[i - 1][j].length- 1] = this.gewichte[i - 1][j][this.gewichte[i - 1][j].length - 1] + (this.lernparameter * (deltawert * this.bias));
+                gewichte_neu[i - 1][j][gewichte_neu[i - 1][j].length- 1] = this.gewichte[i - 1][j][this.gewichte[i - 1][j].length - 1] + (this.lernparameter * (deltawert * this.bias));
             }
         }
         return gewichte_neu;
     }
 
     public Double calcFehler() {
-        return this.fehlerFunktion.execute(this.getSollVektor(),extractOutputVektor());
+        return this.fehlerFunktion.execute(extractOutputVektor(),this.getSollVektor());
     }
 
-    private Double[][][] backPropagate() {
+    public Double[][][] backPropagate() {
         this.calcDeltawerte();
         return this.updateGewichte();
     }
@@ -246,17 +241,47 @@ public class Netz {
 
     public void start() {
         this.gewichte = this.initializeWeights(-0.04, 0.04);
-        this.fehler = Double.MAX_VALUE;
+        this.fehler = 10.0;
         this.fehlerverlauf = new ArrayList<>();
-        this.lernparameter = 0.00001;
-        Stack<Double> prev_fehler_stack = new Stack<>();
-        Stack<Double> new_fehler_stack = new Stack<>();
+        this.lernparameter=0.001;
+     
+ 
+        Double neuer_fehler;
+        Double alter_fehler;
         
 
-        Double neuer_fehler = this.calcFehler();
+        for(int i=0;i<1000;i++){
+           
+            Double[][][] current_weights = this.gewichte; // aktuelle Gewichte merken
+          
+            this.feedForward();
+            Double[][][] updated_weights = this.backPropagate();
+            alter_fehler = this.fehler;
+            neuer_fehler = this.calcFehler();
+            
+        
+           // if(Math.abs(this.fehler-neuer_fehler)<0.00000000001){break;}
+              if(neuer_fehler>alter_fehler){
+                lernparameter=lernparameter/2.0;
+               
+                this.fehler = alter_fehler;
+                this.fehlerverlauf.add(neuer_fehler);
+                this.gewichte=current_weights;
+            }
+            else{
+                lernparameter=lernparameter*1.1;
+              
+                this.fehler=neuer_fehler;
+                this.gewichte = updated_weights;
+                this.fehlerverlauf.add(neuer_fehler);
+            }
+             
+        }
+        
+
+ /*        neuer_fehler = this.calcFehler();
         this.feedForward();
-        
-        
+
         while (Math.abs(this.fehler - neuer_fehler) > 0.000000000001) {
            
            
@@ -290,7 +315,7 @@ public class Netz {
               }
         
      Double sum = fehlerverlauf.stream().reduce(0.0,  (a,b)-> a+b);
-     this.gesamtfehler=sum/this.fehlerverlauf.size();
+     this.gesamtfehler=sum/this.fehlerverlauf.size(); */
     }
 
     public void setLayer(Layer[] layer) {
