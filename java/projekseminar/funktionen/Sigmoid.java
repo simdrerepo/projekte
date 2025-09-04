@@ -2,7 +2,7 @@ package funktionen;
 
 import java.io.Serializable;
 
-public class Sigmoid implements Funktion,Serializable{
+public class Sigmoid implements Funktion, Serializable{
 
     @Override
     public double apply(double parameter) {

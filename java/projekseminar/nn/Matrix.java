@@ -66,6 +66,8 @@ public class Matrix implements Serializable {
         }
     }
 
+   
+
     public static Matrix map(Matrix m, Funktion f){
         Matrix ret = new Matrix(m.rows,m.cols);
         for (int i = 0; i < m.rows; i++) {
@@ -85,6 +87,17 @@ public class Matrix implements Serializable {
         }
     }
 
+    public static double sum(Matrix m){
+        double sum = 0.0;
+        for (int i = 0; i < m.rows; i++) {
+            for (int j = 0; j < m.cols; j++) {
+                sum+=m.data[i][j];
+            }
+        }
+        return sum;
+    }
+
+    
 
     public void add(Matrix n) {
         if (rows != n.rows || cols != n.cols) {
@@ -147,6 +160,8 @@ public class Matrix implements Serializable {
             }
         }
     } 
+
+    
 
     public void print() {
         for (int i = 0; i < rows; i++) {

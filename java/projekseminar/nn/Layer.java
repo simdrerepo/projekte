@@ -2,7 +2,7 @@ package nn;
 
 import java.io.Serializable;
 
-import Utils.random;
+import Utils.RandomUtils;
 import funktionen.Funktion;
 import funktionen.Sigmoid;
 import funktionen.Sigmoid_Ableitung;
@@ -33,11 +33,11 @@ public class Layer implements Serializable {
     }
 
 
-    public Matrix applyError(Matrix pred, Matrix prevPred,Matrix currentErrors) throws Exception{
+    public Matrix applyError(Matrix pred, Matrix prevPred,Matrix currentErrors,double lernparameter) throws Exception{
 
         Matrix gradienten = Matrix.map(pred,new Sigmoid_Ableitung());
         gradienten.multiply(currentErrors);
-        gradienten.multiply(0.1);
+        gradienten.multiply(lernparameter);
         Matrix prevPredTransposed = Matrix.transpose(prevPred);
         Matrix deltas = Matrix.multiply(gradienten, prevPredTransposed);
         this.gewichte.add(deltas);
