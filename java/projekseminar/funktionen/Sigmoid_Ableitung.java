@@ -1,9 +1,12 @@
-package projekseminar.funktionen;
-public class Sigmoid_Ableitung extends Sigmoid {
+package funktionen;
 
-    public Double execute(Double parameter) {
+import java.io.Serializable;
+
+public class Sigmoid_Ableitung implements Funktion, Serializable{
+
+    public double apply(double parameter) {
         
-        return super.execute(parameter)*(1-super.execute(parameter));
+        return parameter * (1-parameter);
     }
 
 

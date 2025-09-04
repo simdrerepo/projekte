@@ -3,6 +3,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import funktionen.Funktion;
+import nn.Netz;
+
 
 public class main {
 
